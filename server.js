@@ -1183,7 +1183,7 @@ app.post("/api/users", requireAuth, requireAdmin, async (req,res) => {
 const port = Number(process.env.PORT || 5173);
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "dist")));
-  app.get("*", (_req,res) => res.sendFile(path.join(__dirname,"dist","index.html")));
+  app.get("/{*path}", (_req,res) => res.sendFile(path.join(__dirname,"dist","index.html")));
 } else {
   const { createServer } = await import("vite");
   const vite = await createServer({ server: { middlewareMode: true }, appType: "spa" });
