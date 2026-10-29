@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import AuthGate from "./AuthGate.jsx";
+import AuditWorkspace from "./AuditWorkspace.jsx";
 import { createRoot } from "react-dom/client";
 import {
   Activity, ArrowUpRight, Bell, BookOpen, BriefcaseBusiness, CalendarDays, LogOut,
@@ -549,7 +550,7 @@ function App({ user, onLogout, onUserUpdated }) {
         <div className="welcome-row projects-welcome"><div><div className="eyebrow-line"><i/> ENGAGEMENT TRACKER</div><h2>Projects</h2><p>Manage engagements across all eight SC workflow stages.</p></div>{allowedPages.includes("Projects") && user?.access?.canCreateProjects && <button className="primary-button" onClick={() => setShowModal(true)}><Plus size={15}/> New project</button>}</div>
         <div className="stats-grid compact-stats"><StatCard label="Total projects" value={String(projects.length).padStart(2,"0")} change="All stages" note="in this workspace" icon={BriefcaseBusiness} tone="mint"/><StatCard label="In progress" value={String(projects.filter(p => p.status === "In progress").length).padStart(2,"0")} change="Active" note="currently underway" icon={Activity} tone="blue"/><StatCard label="In review" value={String(projects.filter(p => p.status === "Review").length).padStart(2,"0")} change="Attention" note="awaiting review" icon={Clock3} tone="amber" caution/><StatCard label="Planning" value={String(projects.filter(p => p.status === "Planning").length).padStart(2,"0")} change="Upcoming" note="not yet underway" icon={CalendarDays} tone="violet"/></div>
         <section className="panel all-projects"><div className="panel-heading"><div><h3>All engagements</h3><p>Search project name, client, ID or workflow stage.</p></div><label className="table-search"><Search size={14}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter projects"/></label></div><ProjectTable projects={visibleProjects} onOpen={setSelectedProject} loading={projectsLoading}/></section>
-      </> : <ModulePage name={active} />}
+      </> : active === "Audit Report" && allowedPages.includes("Audit Report") ? <AuditWorkspace userRole={user?.role} /> : <ModulePage name={active} />}
     </div>
     <footer className="app-footer"><span>SC CONTROL CENTER <b>·</b> UI PROTOTYPE 0.1.0</span><span><i/> Development environment <b>|</b> Built for internal use</span></footer>
   </main>

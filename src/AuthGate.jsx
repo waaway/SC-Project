@@ -46,16 +46,14 @@ export default function AuthGate({ children, onAuthenticated }) {
     </section>
     <div className="auth-card">
       {mode === "loading" ? <div className="auth-loading"><LoaderCircle className="spin" size={24}/><p>Checking session...</p></div> : <>
-        <div className="auth-kicker"><i/> INTERNAL WORKSPACE</div>
-        <h1>{mode === "error" ? "Server unavailable" : "Welcome back"}</h1>
-        <p className="auth-subtitle">{mode === "error" ? "SC Control Center requires a connection to the backend." : "Access your security workspace."}</p>
+        <h1>{mode === "error" ? "Server unavailable" : "Sign in to SC CONTROL"}</h1>
+        <p className="auth-subtitle">{mode === "error" ? "SC Control Center requires a connection to the backend." : "Welcome! Please enter your email and password"}</p>
         {mode === "error" ? <div className="auth-error">{error}<button onClick={() => location.reload()}>Try again</button></div> : <form className="auth-form" onSubmit={submit}>
-          <label>USERNAME<div className="auth-input-wrap"><UserRound size={17}/><input required minLength={3} maxLength={40} autoComplete="username" value={username} onChange={e=>setUsername(e.target.value)} placeholder="your.username"/></div></label>
-          <label>PASSWORD<div className="auth-input-wrap"><LockKeyhole size={17}/><input required maxLength={128} autoComplete="current-password" type={showPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/><button type="button" className="password-toggle" onClick={()=>setShowPassword(v=>!v)} aria-label="Toggle password visibility">{showPassword?<EyeOff size={16}/>:<Eye size={16}/>}</button></div></label>
+          <label>Email<div className="auth-input-wrap"><UserRound size={17}/><input required minLength={3} maxLength={40} autoComplete="username" value={username} onChange={e=>setUsername(e.target.value)} placeholder="Enter your email"/></div></label>
+          <label>Password<div className="auth-input-wrap"><LockKeyhole size={17}/><input required maxLength={128} autoComplete="current-password" type={showPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/><button type="button" className="password-toggle" onClick={()=>setShowPassword(v=>!v)} aria-label="Toggle password visibility">{showPassword?<EyeOff size={16}/>:<Eye size={16}/>}</button></div></label>
           {error && <div className="auth-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={busy}>{busy?<LoaderCircle className="spin" size={17}/>:<LockKeyhole size={16}/>} {busy?"Signing in...":"Sign in"} <span>→</span></button>
         </form>}
-        <div className="auth-security"><LockKeyhole size={14}/><span>Private workspace · Session-based authentication</span></div>
       </>}
       
     </div>
