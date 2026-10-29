@@ -7,6 +7,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, createHash } from "node:crypto";
 import fs from "node:fs";
+import {
+  createProjectDocumentMarkdown,
+  exportMarkdownProjectDocument,
+  exportProjectDocument,
+  extractImportedDocument,
+  normalizeProjectDocumentFields,
+  projectDocumentCategories,
+  projectDocumentTypes,
+  suggestProjectDocumentType,
+  supportedDocumentExtension
+} from "./server/documents.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Load optional local environment variables without adding a runtime dependency. Secrets stay server-side.
@@ -17,11 +28,13 @@ if (fs.existsSync(envPath)) {
     if (match && !match[1].startsWith("#") && process.env[match[1]] === undefined) process.env[match[1]] = match[2].replace(/^(['"])(.*)\1$/, "$2");
   }
 }
-const dataDir = path.join(__dirname, "data");
+const dataDir = process.env.SC_DATA_DIR ? path.resolve(process.env.SC_DATA_DIR) : path.join(__dirname, "data");
 const avatarDir = path.join(dataDir, "avatars");
+const projectDocumentsDir = path.join(dataDir, "project-documents");
 fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 fs.mkdirSync(avatarDir, { recursive: true, mode: 0o700 });
-try { fs.chmodSync(dataDir, 0o700); fs.chmodSync(avatarDir, 0o700); } catch {}
+fs.mkdirSync(projectDocumentsDir, { recursive: true, mode: 0o700 });
+try { fs.chmodSync(dataDir, 0o700); fs.chmodSync(avatarDir, 0o700); fs.chmodSync(projectDocumentsDir, 0o700); } catch {}
 const dbPath = path.join(dataDir, "sc-control-center.sqlite");
 const db = new DatabaseSync(dbPath);
 try { fs.chmodSync(dbPath, 0o600); } catch {}
@@ -215,7 +228,34 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
   CREATE INDEX IF NOT EXISTS planning_documents_project_idx ON planning_documents(project_id,created_at DESC);
+  CREATE TABLE IF NOT EXISTS project_documents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    document_type TEXT NOT NULL,
+    origin TEXT NOT NULL CHECK(origin IN ('imported','draft')),
+    title TEXT NOT NULL,
+    source_filename TEXT NOT NULL DEFAULT '',
+    stored_filename TEXT NOT NULL DEFAULT '',
+    media_type TEXT NOT NULL DEFAULT '',
+    file_size INTEGER NOT NULL DEFAULT 0 CHECK(file_size BETWEEN 0 AND 12582912),
+    sha256 TEXT NOT NULL DEFAULT '',
+    extracted_text TEXT NOT NULL DEFAULT '',
+    extraction_status TEXT NOT NULL DEFAULT 'not_applicable',
+    content_json TEXT NOT NULL DEFAULT '',
+    content_markdown TEXT NOT NULL DEFAULT '',
+    source_document_id INTEGER REFERENCES project_documents(id) ON DELETE SET NULL,
+    review_status TEXT NOT NULL DEFAULT 'Imported' CHECK(review_status IN ('Imported','Draft','Reviewed','Issued')),
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS project_documents_project_idx ON project_documents(project_id,document_type,created_at DESC);
 `);
+const projectDocumentColumns=db.prepare("PRAGMA table_info(project_documents)").all().map(column=>column.name);
+if(!projectDocumentColumns.includes("extraction_status"))db.exec("ALTER TABLE project_documents ADD COLUMN extraction_status TEXT NOT NULL DEFAULT 'not_applicable'");
 // Add self-service profile picture metadata to existing databases.
 const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
 if (!userColumns.includes("avatar_path")) db.exec("ALTER TABLE users ADD COLUMN avatar_path TEXT");
@@ -288,7 +328,9 @@ if (!auditColumns.includes('role_snapshot')) db.exec("ALTER TABLE audit_log ADD 
 const app = express();
 app.disable("x-powered-by");
 app.use(helmet({ contentSecurityPolicy: false }));
-// JSON carries only a resized JPEG avatar (max 2 MB decoded) for self-service profile updates.
+const projectDocumentImportLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, message: { error: "Project document import limit reached. Please wait before importing more files." } });
+app.use("/api/project-documents/projects/:projectId/import", projectDocumentImportLimiter, express.json({ limit: "18mb" }));
+// Keep normal API request bodies small; only file imports get the larger bounded JSON payload.
 app.use(express.json({ limit: "4mb" }));
 const sessionDuration = 8 * 60 * 60 * 1000;
 const hashToken = token => createHash("sha256").update(token).digest("hex");
@@ -721,6 +763,19 @@ app.patch("/api/audit/documents/:documentId", requireAuth, requireWorkflowPage("
   const updated = db.prepare("SELECT id,document_type,title,content_markdown,model,review_status,created_by,reviewed_by,reviewed_at,created_at FROM audit_documents WHERE id=?").get(documentId);
   res.json({document:updated});
 });
+const auditExportFormats = {audit_report:"docx",close_summary:"pptx",car_register:"xlsx"};
+app.get("/api/audit/documents/:documentId/export/:format", requireAuth, requireWorkflowPage("Audit Report"), async (req,res) => {
+  const id=Number(req.params.documentId);if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:"Invalid document ID."});
+  const document=db.prepare("SELECT id,project_id,document_type,title,content_markdown FROM audit_documents WHERE id=?").get(id);if(!document)return res.status(404).json({error:"Generated document not found."});
+  const project=db.prepare("SELECT id,name,client,stage,status,progress FROM projects WHERE id=?").get(document.project_id);if(!project)return res.status(404).json({error:"Project not found."});
+  if(!canAccessProject(req.user,project.id))return res.status(403).json({error:"You do not have access to this project."});
+  const format=cleanAuditField(req.params.format,10).toLowerCase();if(auditExportFormats[document.document_type]!==format)return res.status(400).json({error:`Export this draft as ${(auditExportFormats[document.document_type]||"").toUpperCase()}.`});
+  try{
+    const output=await exportMarkdownProjectDocument(document.content_markdown,document.title,project,format);
+    logAction(req.user.id,"EXPORT_AUDIT_DOCUMENT","audit_document",String(id));
+    res.setHeader("Cache-Control","private, no-store");res.setHeader("Content-Type",output.mimeType);res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Content-Disposition",`attachment; filename="${safeDownloadName(`${project.id}-${document.document_type}-${document.id}`)}.${output.extension}"`);res.end(output.buffer);
+  }catch{return res.status(500).json({error:"Could not create the requested Office document."});}
+});
 
 const planDeliveryModes = new Set(["Onsite","Offsite","Hybrid"]);
 const planningDocLabels = {manload:"Manload Draft",proposal:"Technical Proposal Draft",org_chart:"Project Organization Chart Draft",timeline:"Project Timeline Draft",team_profile:"Project Team Profile Draft",kickoff:"Kickoff Presentation Draft"};
@@ -954,6 +1009,223 @@ app.patch("/api/planning/documents/:documentId", requireAuth, requireAuditReview
   db.prepare("UPDATE planning_documents SET review_status=?,reviewed_by=?,reviewed_at=CASE WHEN ?='Draft' THEN NULL ELSE CURRENT_TIMESTAMP END WHERE id=?").run(reviewStatus,reviewStatus==="Draft"?null:req.user.id,reviewStatus,id);
   logAction(req.user.id,reviewStatus==="Issued"?"ISSUE_PLANNING_DOCUMENT":"REVIEW_PLANNING_DOCUMENT","planning_document",String(id));
   const updated=db.prepare("SELECT id,document_type,title,content_markdown,model,review_status,created_by,reviewed_by,reviewed_at,created_at FROM planning_documents WHERE id=?").get(id);res.json({document:updated});
+});
+const planningExportFormats={manload:"xlsx",proposal:"docx",org_chart:"pptx",timeline:"xlsx",team_profile:"docx",kickoff:"pptx"};
+app.get("/api/planning/documents/:documentId/export/:format", requireAuth, async (req,res) => {
+  const id=Number(req.params.documentId);if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:"Invalid document ID."});
+  const document=db.prepare("SELECT id,project_id,document_type,title,content_markdown FROM planning_documents WHERE id=?").get(id);if(!document)return res.status(404).json({error:"Generated document not found."});
+  const page=planningDocumentPages[document.document_type];if(!hasWorkflowPage(req.user,page))return res.status(403).json({error:`You do not have permission to export ${page} documents.`});
+  const project=db.prepare("SELECT id,name,client,stage,status,progress FROM projects WHERE id=?").get(document.project_id);if(!project)return res.status(404).json({error:"Project not found."});
+  if(!canAccessProject(req.user,project.id))return res.status(403).json({error:"You do not have access to this project."});
+  const format=cleanAuditField(req.params.format,10).toLowerCase();if(planningExportFormats[document.document_type]!==format)return res.status(400).json({error:`Export this draft as ${(planningExportFormats[document.document_type]||"").toUpperCase()}.`});
+  try{
+    const output=await exportMarkdownProjectDocument(document.content_markdown,document.title,project,format);
+    logAction(req.user.id,"EXPORT_PLANNING_DOCUMENT","planning_document",String(id));
+    res.setHeader("Cache-Control","private, no-store");res.setHeader("Content-Type",output.mimeType);res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Content-Disposition",`attachment; filename="${safeDownloadName(`${project.id}-${document.document_type}-${document.id}`)}.${output.extension}"`);res.end(output.buffer);
+  }catch{return res.status(500).json({error:"Could not create the requested Office document."});}
+});
+
+const projectDocumentMaxBytes = 12 * 1024 * 1024;
+const projectDocumentMimes = {
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ".pdf": "application/pdf"
+};
+function projectDocumentProject(req, res, next) {
+  const projectId = String(req.params.projectId || "").trim();
+  const project = db.prepare("SELECT id,name,client,stage,status,progress FROM projects WHERE id=?").get(projectId);
+  if (!project) return res.status(404).json({error:"Project not found."});
+  if (!canAccessProject(req.user,project.id)) return res.status(403).json({error:"You do not have access to this project."});
+  req.projectDocumentProject = project;
+  next();
+}
+function requireProjectDocumentCategory(categoryFrom = "query") {
+  return (req,res,next) => {
+    const type = cleanAuditField(req.body?.documentType || req.params?.documentType,40);
+    const category = cleanAuditField(categoryFrom === "body" ? req.body?.category : req.query?.category,20) || projectDocumentTypes[type]?.category || "";
+    const config = projectDocumentCategories[category];
+    if (!config) return res.status(400).json({error:"Choose a valid project document category."});
+  if (type && (!projectDocumentTypes[type] || projectDocumentTypes[type].category !== category)) return res.status(400).json({error:"This document type is not available in the selected workflow."});
+    if (!hasWorkflowPage(req.user,config.page)) return res.status(403).json({error:`You do not have permission to access the ${config.page} workflow.`});
+    req.projectDocumentCategory = category;
+    req.projectDocumentConfig = config;
+    req.projectDocumentType = type;
+    next();
+  };
+}
+function requireStoredProjectDocument(req,res,next) {
+  const id = Number(req.params.documentId);
+  if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({error:"Invalid project document ID."});
+  const document = db.prepare("SELECT id,project_id,document_type,origin,title,source_filename,stored_filename,media_type,file_size,sha256,extracted_text,extraction_status,content_json,content_markdown,source_document_id,review_status,created_by,updated_by,reviewed_by,reviewed_at,created_at,updated_at FROM project_documents WHERE id=?").get(id);
+  if (!document) return res.status(404).json({error:"Project document not found."});
+  const type = projectDocumentTypes[document.document_type];
+  if (!type) return res.status(404).json({error:"Project document type is unavailable."});
+  if (!hasWorkflowPage(req.user,type.page)) return res.status(403).json({error:`You do not have permission to access ${type.label} documents.`});
+  if (!canAccessProject(req.user,document.project_id)) return res.status(403).json({error:"You do not have access to this project."});
+  req.projectDocument = document;
+  req.projectDocumentTypeInfo = type;
+  req.projectDocumentProject = db.prepare("SELECT id,name,client,stage,status,progress FROM projects WHERE id=?").get(document.project_id);
+  next();
+}
+function normalizeProjectDocumentTitle(type, fields, project) {
+  const typedTitle = cleanAuditField(fields.title,180);
+  const base = ["policy","procedure"].includes(type) && typedTitle ? typedTitle : `${projectDocumentTypes[type].label} - ${project.name}`;
+  return base.slice(0,220);
+}
+function validateDocumentSource(projectId, sourceDocumentId) {
+  if (sourceDocumentId == null) return true;
+  return !!db.prepare("SELECT 1 FROM project_documents WHERE id=? AND project_id=? AND origin='imported'").get(sourceDocumentId,projectId);
+}
+function accessibleProjectReferenceConflict(user, project, filename, text) {
+  const source = `${filename}\n${text}`.normalize("NFKC").toLocaleLowerCase();
+  const projects = getAccessibleProjects(user).filter(candidate=>candidate.id!==project.id);
+  return projects.some(candidate=>{
+    const id = candidate.id.normalize("NFKC").toLocaleLowerCase();
+    const client = String(candidate.client||"").normalize("NFKC").toLocaleLowerCase().trim();
+    return source.includes(id) || client.length >= 4 && source.includes(client);
+  });
+}
+function safeSourceName(value) {
+  return path.basename(String(value||"").replace(/\\/g,"/")).replace(/[\u0000-\u001f\u007f]/g,"").trim().slice(0,180);
+}
+function safeDownloadName(value) {
+  return String(value||"document").normalize("NFKD").replace(/[^\w.-]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"").slice(0,110) || "document";
+}
+function publicProjectDocument(row) {
+  const {stored_filename:_storedFilename,...safe} = row;
+  return safe;
+}
+
+app.get("/api/project-documents/projects", requireAuth, requireProjectDocumentCategory(), (req,res) => {
+  res.setHeader("Cache-Control","private, no-store");
+  res.json({projects:getAccessibleProjects(req.user)});
+});
+app.get("/api/project-documents/projects/:projectId", requireAuth, requireProjectDocumentCategory(), projectDocumentProject, (req,res) => {
+  const types = req.projectDocumentConfig.types;
+  const placeholders = types.map(()=>"?").join(",");
+  const documents = db.prepare(`SELECT id,project_id,document_type,origin,title,source_filename,media_type,file_size,sha256,extracted_text,extraction_status,content_json,content_markdown,source_document_id,review_status,created_by,updated_by,reviewed_by,reviewed_at,created_at,updated_at FROM project_documents WHERE project_id=? AND document_type IN (${placeholders}) ORDER BY id DESC LIMIT 100`).all(req.projectDocumentProject.id,...types);
+  res.setHeader("Cache-Control","private, no-store");
+  res.json({project:req.projectDocumentProject,documents});
+});
+app.post("/api/project-documents/projects/:projectId/import", requireAuth, requireProjectDocumentCategory("body"), projectDocumentProject, async (req,res) => {
+  const type = req.projectDocumentType;
+  if (!type || !req.projectDocumentConfig.types.includes(type)) return res.status(400).json({error:"Choose an import document type for this workflow."});
+  const project = req.projectDocumentProject;
+  if (String(req.body.confirmProjectId||"").trim() !== project.id) return res.status(400).json({error:"Type the selected project ID to confirm where this file will be stored."});
+  const filename = safeSourceName(req.body.filename);
+  const extension = supportedDocumentExtension(filename);
+  if (!filename || !extension) return res.status(400).json({error:"Upload a DOCX, XLSX, PPTX, or PDF source file."});
+  const encoded = String(req.body.fileBase64||"");
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded) || encoded.length > Math.ceil(projectDocumentMaxBytes*4/3)+8) return res.status(413).json({error:"The file is empty, malformed, or larger than 12 MB."});
+  const file = Buffer.from(encoded,"base64");
+  if (!file.length || file.length > projectDocumentMaxBytes || file.toString("base64") !== encoded) return res.status(413).json({error:"The file is empty, malformed, or larger than 12 MB."});
+  let extracted;
+  try { extracted = await extractImportedDocument(file,extension); }
+  catch (error) {
+    const code = String(error?.message||"");
+    if (["unsafe_archive","unsupported_archive"].includes(code)) return res.status(413).json({error:"This Office file exceeds the safe archive limits and was not stored."});
+    return res.status(400).json({error:"The file could not be read. Check that it is a valid, unencrypted DOCX, XLSX, PPTX, or PDF."});
+  }
+  if (accessibleProjectReferenceConflict(req.user,project,filename,extracted.text)) return res.status(409).json({error:"This file appears to reference another accessible project or client. It was not stored. Choose its matching project or remove client-identifying content before reusing it."});
+  const hash = createHash("sha256").update(file).digest("hex");
+  if (db.prepare("SELECT 1 FROM project_documents WHERE project_id=? AND sha256=? AND origin='imported'").get(project.id,hash)) return res.status(409).json({error:"This source file is already imported into the selected project."});
+  const storedFilename = `${randomBytes(24).toString("hex")}${extension}`;
+  const destination = path.join(projectDocumentsDir,storedFilename);
+  const extractionStatus = extracted.scanned ? "needs_ocr" : extracted.truncated ? "truncated" : "read";
+  const title = filename.replace(/\.[^.]+$/," ").trim().slice(0,180) || projectDocumentTypes[type].label;
+  try {
+    fs.writeFileSync(destination,file,{flag:"wx",mode:0o600});
+    const result = db.prepare(`INSERT INTO project_documents (project_id,document_type,origin,title,source_filename,stored_filename,media_type,file_size,sha256,extracted_text,extraction_status,review_status,created_by,updated_by)
+      VALUES (?,?, 'imported',?,?,?,?,?,?,?,?,'Imported',?,?)`).run(project.id,type,title,filename,storedFilename,projectDocumentMimes[extension],file.length,hash,extracted.text,extractionStatus,req.user.id,req.user.id);
+    logAction(req.user.id,"IMPORT_PROJECT_DOCUMENT","project_document",String(result.lastInsertRowid));
+    const document = db.prepare("SELECT id,project_id,document_type,origin,title,source_filename,media_type,file_size,sha256,extracted_text,extraction_status,content_json,content_markdown,source_document_id,review_status,created_by,updated_by,reviewed_by,reviewed_at,created_at,updated_at FROM project_documents WHERE id=?").get(result.lastInsertRowid);
+    res.setHeader("Cache-Control","private, no-store");
+    return res.status(201).json({document,suggestedType:suggestProjectDocumentType(filename),extraction:{pages:extracted.pages,scanned:extracted.scanned,truncated:extracted.truncated,characters:extracted.text.length}});
+  } catch {
+    try { fs.unlinkSync(destination); } catch {}
+    return res.status(500).json({error:"Could not safely store this project document."});
+  }
+});
+app.post("/api/project-documents/projects/:projectId/drafts", requireAuth, requireProjectDocumentCategory("body"), projectDocumentProject, (req,res) => {
+  const type = req.projectDocumentType;
+  if (!type || !req.projectDocumentConfig.types.includes(type)) return res.status(400).json({error:"Choose a document type for this workflow."});
+  if (projectDocumentTypes[type].importOnly) return res.status(400).json({error:"This document type is available for reference import only in this workflow."});
+  const project = req.projectDocumentProject;
+  if (String(req.body.confirmProjectId||"").trim() !== project.id) return res.status(400).json({error:"Type the selected project ID to confirm where this draft will be stored."});
+  let fields;
+  try { fields = normalizeProjectDocumentFields(type,req.body.fields||{}); }
+  catch (error) { return res.status(400).json({error:error.message==="empty_document"?"Enter at least one field before saving the draft.":"The document contains invalid fields."}); }
+  if (!validateDocumentSource(project.id,fields.sourceDocumentId)) return res.status(400).json({error:"Choose a source file from this project only."});
+  const title = normalizeProjectDocumentTitle(type,fields,project);
+  const markdown = createProjectDocumentMarkdown(type,fields,project);
+  const result = db.prepare(`INSERT INTO project_documents (project_id,document_type,origin,title,content_json,content_markdown,source_document_id,review_status,created_by,updated_by)
+    VALUES (?,?, 'draft',?,?,?,?,'Draft',?,?)`).run(project.id,type,title,JSON.stringify(fields),markdown,fields.sourceDocumentId,req.user.id,req.user.id);
+  logAction(req.user.id,"CREATE_PROJECT_DOCUMENT_DRAFT","project_document",String(result.lastInsertRowid));
+  const document = db.prepare("SELECT id,project_id,document_type,origin,title,source_filename,media_type,file_size,sha256,extracted_text,extraction_status,content_json,content_markdown,source_document_id,review_status,created_by,updated_by,reviewed_by,reviewed_at,created_at,updated_at FROM project_documents WHERE id=?").get(result.lastInsertRowid);
+  res.setHeader("Cache-Control","private, no-store");
+  res.status(201).json({document});
+});
+app.patch("/api/project-documents/:documentId", requireAuth, requireStoredProjectDocument, (req,res) => {
+  const document = req.projectDocument;
+  if (req.body.fields && document.origin === "draft") {
+    if (document.review_status === "Issued") return res.status(409).json({error:"Issued documents cannot be edited. Create a new draft revision."});
+    if (document.created_by !== req.user.id && !["admin","manager","reviewer"].includes(req.user.role)) return res.status(403).json({error:"Only the draft creator or a reviewer may edit this document."});
+    if (String(req.body.confirmProjectId||"").trim() !== document.project_id) return res.status(400).json({error:"Type the selected project ID to confirm this draft revision."});
+    let fields;
+    try { fields = normalizeProjectDocumentFields(document.document_type,req.body.fields); }
+    catch { return res.status(400).json({error:"Enter at least one valid field before saving the draft."}); }
+    if (!validateDocumentSource(document.project_id,fields.sourceDocumentId)) return res.status(400).json({error:"Choose a source file from this project only."});
+    const project = req.projectDocumentProject;
+    const title = normalizeProjectDocumentTitle(document.document_type,fields,project);
+    const markdown = createProjectDocumentMarkdown(document.document_type,fields,project);
+    db.prepare("UPDATE project_documents SET title=?,content_json=?,content_markdown=?,source_document_id=?,review_status='Draft',reviewed_by=NULL,reviewed_at=NULL,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").run(title,JSON.stringify(fields),markdown,fields.sourceDocumentId,req.user.id,document.id);
+    logAction(req.user.id,"UPDATE_PROJECT_DOCUMENT_DRAFT","project_document",String(document.id));
+  } else {
+    const allowedStatuses = document.origin === "imported" ? ["Imported","Reviewed"] : ["Draft","Reviewed","Issued"];
+    const reviewStatus = cleanAuditField(req.body.reviewStatus,20);
+    if (!allowedStatuses.includes(reviewStatus)) return res.status(400).json({error:"Invalid document review status."});
+    if (reviewStatus !== "Draft" && reviewStatus !== "Imported" && !["admin","manager","reviewer"].includes(req.user.role)) return res.status(403).json({error:"A Reviewer, Manager, or Admin must review and issue documents."});
+    if (reviewStatus === "Issued" && document.review_status !== "Reviewed") return res.status(409).json({error:"Review the draft before marking it issued."});
+    db.prepare("UPDATE project_documents SET review_status=?,reviewed_by=?,reviewed_at=CASE WHEN ? IN ('Reviewed','Issued') THEN CURRENT_TIMESTAMP ELSE NULL END,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").run(reviewStatus,reviewStatus === "Reviewed" || reviewStatus === "Issued" ? req.user.id : null,reviewStatus,req.user.id,document.id);
+    logAction(req.user.id,reviewStatus === "Issued" ? "ISSUE_PROJECT_DOCUMENT" : "REVIEW_PROJECT_DOCUMENT","project_document",String(document.id));
+  }
+  const updated = db.prepare("SELECT id,project_id,document_type,origin,title,source_filename,media_type,file_size,sha256,extracted_text,extraction_status,content_json,content_markdown,source_document_id,review_status,created_by,updated_by,reviewed_by,reviewed_at,created_at,updated_at FROM project_documents WHERE id=?").get(document.id);
+  res.setHeader("Cache-Control","private, no-store");
+  res.json({document:updated});
+});
+app.get("/api/project-documents/:documentId/source", requireAuth, requireStoredProjectDocument, (req,res) => {
+  const document = req.projectDocument;
+  if (document.origin !== "imported" || !document.stored_filename) return res.status(404).json({error:"Original source file not found."});
+  const sourcePath = path.join(projectDocumentsDir,path.basename(document.stored_filename));
+  if (!fs.existsSync(sourcePath)) return res.status(404).json({error:"Original source file is unavailable."});
+  res.setHeader("Cache-Control","private, no-store");
+  res.setHeader("Content-Type",document.media_type||"application/octet-stream");
+  res.setHeader("X-Content-Type-Options","nosniff");
+  res.setHeader("Content-Disposition",`attachment; filename="${safeDownloadName(document.source_filename)}"`);
+  logAction(req.user.id,"DOWNLOAD_PROJECT_DOCUMENT","project_document",String(document.id));
+  res.sendFile(sourcePath,{dotfiles:"deny",acceptRanges:false},error=>{if(error&&!res.headersSent)res.status(error.statusCode||500).end();});
+});
+app.get("/api/project-documents/:documentId/export/:format", requireAuth, requireStoredProjectDocument, async (req,res) => {
+  const document = req.projectDocument;
+  if (document.origin !== "draft") return res.status(400).json({error:"Only structured project drafts can be exported."});
+  const format = cleanAuditField(req.params.format,10).toLowerCase();
+  let fields;
+  try { fields = JSON.parse(document.content_json||"{}"); }
+  catch { return res.status(500).json({error:"The saved draft could not be read."}); }
+  try {
+    const output = await exportProjectDocument(document.document_type,fields,req.projectDocumentProject,format);
+    const filename = safeDownloadName(`${req.projectDocumentProject.id}-${document.document_type}-${document.id}`);
+    logAction(req.user.id,"EXPORT_PROJECT_DOCUMENT","project_document",String(document.id));
+    res.setHeader("Cache-Control","private, no-store");
+    res.setHeader("Content-Type",output.mimeType);
+    res.setHeader("X-Content-Type-Options","nosniff");
+    res.setHeader("Content-Disposition",`attachment; filename="${filename}.${output.extension}"`);
+    res.end(output.buffer);
+  } catch (error) {
+    if (error?.message === "unsupported_export_format") return res.status(400).json({error:`Export this draft as ${projectDocumentTypes[document.document_type].format.toUpperCase()}.`});
+    return res.status(500).json({error:"Could not create the requested Office document."});
+  }
 });
 
 app.get("/api/ai/status", requireAuth, requireAIAccess, (_req, res) => {

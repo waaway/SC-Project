@@ -28,6 +28,7 @@ const docLabels = {
   close_summary: "Closing Meeting Summary",
   car_register: "CAR Drafts"
 };
+const documentExportFormats = { audit_report: "docx", close_summary: "pptx", car_register: "xlsx" };
 
 async function readResponse(response) {
   const data = await response.json().catch(() => ({}));
@@ -40,7 +41,7 @@ function Field({ label, value, onChange, required, multiline = false, placeholde
   return <label className="audit-field">{label}{required && <span>Required</span>}<Tag required={required} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}/></label>;
 }
 
-export default function AuditWorkspace({ userRole }) {
+export default function AuditWorkspace({ userRole, userId }) {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
   const [workspace, setWorkspace] = useState(null);
@@ -239,7 +240,7 @@ export default function AuditWorkspace({ userRole }) {
           {!workspace.documents?.length ? <div className="empty-state"><FileText size={22}/><b>No generated drafts yet</b><span>Generated documents will be saved here for review.</span></div> : <div className="audit-documents">{workspace.documents.map(d => <article className="generated-document" key={d.id}>
             <div className="generated-document-heading"><div><small>{docLabels[d.document_type] || d.document_type} · {new Date(d.created_at + "Z").toLocaleString()}</small><h4>{d.title}</h4></div><span className={`audit-state ${d.review_status === "Issued" ? "confirmed" : "pending"}`}>{d.review_status}</span></div>
             <pre>{d.content_markdown}</pre>
-            <div className="audit-actions"><button className="secondary-button" onClick={()=>downloadDocument(d)}><ArrowDownToLine size={14}/> Download .md</button>{canReview && d.review_status === "Draft" && <button className="secondary-button" onClick={()=>updateDocumentStatus(d,"Reviewed")}><CheckCircle2 size={14}/> Mark reviewed</button>}{canReview && d.review_status === "Reviewed" && <button className="primary-button" onClick={()=>updateDocumentStatus(d,"Issued")}><Check size={14}/> Mark issued</button>}</div>
+            <div className="audit-actions"><button className="secondary-button" onClick={()=>downloadDocument(d)}><ArrowDownToLine size={14}/> Download .md</button>{documentExportFormats[d.document_type]&&<a className="secondary-button" href={`/api/audit/documents/${d.id}/export/${documentExportFormats[d.document_type]}`}><ArrowDownToLine size={14}/> Export .{documentExportFormats[d.document_type]}</a>}{canReview && d.review_status === "Draft" && <button className="secondary-button" onClick={()=>updateDocumentStatus(d,"Reviewed")}><CheckCircle2 size={14}/> Mark reviewed</button>}{canReview && d.review_status === "Reviewed" && <button className="primary-button" onClick={()=>updateDocumentStatus(d,"Issued")}><Check size={14}/> Mark issued</button>}</div>
           </article>)}</div>}
         </section>
       </>}

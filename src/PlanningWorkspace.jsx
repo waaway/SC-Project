@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowDownToLine, Check, CheckCircle2, ClipboardList, FileText, LoaderCircle, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, Users } from "lucide-react";
+import { ProjectDocumentSources } from "./ProjectDocumentsWorkspace.jsx";
 import "./planning-workflow.css";
 
 const emptyPlan = {
@@ -9,6 +10,7 @@ const emptyPlan = {
 const emptyPhase = {phaseCode:"",phaseName:"",startDate:"",endDate:"",durationDays:"0",mandays:"0",onsiteDays:"0",offsiteDays:"0",responsibleMembers:""};
 const emptyMember = {displayName:"",roleTitle:"",biography:"",education:"",qualifications:""};
 const documentLabels = {manload:"Manload",proposal:"Technical Proposal",org_chart:"Organization Chart",timeline:"Project Timeline",team_profile:"Team Profile",kickoff:"Kickoff Presentation"};
+const documentExportFormats = {manload:"xlsx",proposal:"docx",org_chart:"pptx",timeline:"xlsx",team_profile:"docx",kickoff:"pptx"};
 const documentSets = {
   setup:["manload"],
   proposal:["proposal","org_chart","timeline","team_profile"],
@@ -25,7 +27,7 @@ function InputField({label,value,onChange,type="text",multiline=false,required=f
   return <label className="planning-field">{label}{required&&<span>Required</span>}<Tag type={multiline?undefined:type} step={step} required={required} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}/></label>;
 }
 
-export default function PlanningWorkspace({mode,userRole,allowedPages=[],navigate}) {
+export default function PlanningWorkspace({mode,userRole,userId,allowedPages=[],navigate}) {
   const [projects,setProjects]=useState([]);
   const [projectId,setProjectId]=useState("");
   const [workspace,setWorkspace]=useState(null);
@@ -44,6 +46,7 @@ export default function PlanningWorkspace({mode,userRole,allowedPages=[],navigat
   const [notice,setNotice]=useState("");
   const canReview=["admin","manager","reviewer"].includes(userRole);
   const documentTypes=documentSets[mode]||documentSets.proposal;
+  const sourceCategory=mode==="setup"?"mainload":mode==="kickoff"?"kickoff":"proposal";
   const title=mode==="setup"?"Mainload & Project Planning":mode==="kickoff"?"Kickoff Presentation":"Proposal Pack";
   const subtitle=mode==="setup"?"Build a source-backed plan, assign the project team and confirm the workload.":mode==="kickoff"?"Draft the kickoff presentation from this project's confirmed plan.":"Generate proposal, organization chart, timeline and team profile drafts from one approved plan.";
 
@@ -189,7 +192,7 @@ export default function PlanningWorkspace({mode,userRole,allowedPages=[],navigat
           <div className="planning-form">
             <div className="planning-grid two"><label className="planning-field">Document type<select value={documentType} onChange={e=>{setDocumentType(e.target.value);setAiConsent(false);}}>{documentTypes.map(t=><option key={t} value={t}>{documentLabels[t]}</option>)}</select></label><div className="planning-readiness"><b>Planning data</b><span>{briefApproved?"Brief confirmed":"Brief needs confirmation"} · {planApproved?"Plan confirmed":"Plan needs confirmation"} · {workspace.team?.length||0} selected team members · {workspace.phases?.length||0} phases</span></div></div>
             <label className="planning-consent"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/><span>I confirm this project's planning data and any team details used for this draft are approved for processing by the configured AI provider.</span></label>
-            <div className="planning-actions"><button className="primary-button" type="button" onClick={generateDocument} disabled={generating||!aiConsent||!briefApproved||!planApproved}><Sparkles size={14}/>{generating?"Generating...":`Generate ${documentLabels[documentType]||"document"}`}</button><span>The generated output is a Markdown draft. Word/Excel/PowerPoint template export comes in a later phase.</span></div>
+            <div className="planning-actions"><button className="primary-button" type="button" onClick={generateDocument} disabled={generating||!aiConsent||!briefApproved||!planApproved}><Sparkles size={14}/>{generating?"Generating...":`Generate ${documentLabels[documentType]||"document"}`}</button><span>AI generation needs an active API balance. Saved Markdown drafts can be exported to editable Office files.</span></div>
           </div>
         </section>}
 
@@ -198,9 +201,10 @@ export default function PlanningWorkspace({mode,userRole,allowedPages=[],navigat
           {!visibleDocuments.length?<div className="empty-state planning-empty"><FileText size={22}/><b>No drafts yet</b><span>Approved project inputs will appear in generated planning documents.</span></div>:<div className="planning-doc-list">{visibleDocuments.map(d=><article className="planning-document" key={d.id}>
             <div className="planning-document-heading"><div><small>{documentLabels[d.document_type]} · {d.created_at}</small><h4>{d.title}</h4></div><span className={`planning-state ${d.review_status==="Issued"?"approved":"pending"}`}>{d.review_status}</span></div>
             <pre>{d.content_markdown}</pre>
-            <div className="planning-actions"><button className="secondary-button" onClick={()=>downloadDocument(d)}><ArrowDownToLine size={14}/> Download .md</button>{canReview&&d.review_status==="Draft"&&<button className="secondary-button" onClick={()=>updateDocumentStatus(d,"Reviewed")}><CheckCircle2 size={14}/> Mark reviewed</button>}{canReview&&d.review_status==="Reviewed"&&<button className="primary-button" onClick={()=>updateDocumentStatus(d,"Issued")}><Check size={14}/> Mark issued</button>}</div>
+            <div className="planning-actions"><button className="secondary-button" onClick={()=>downloadDocument(d)}><ArrowDownToLine size={14}/> Download .md</button>{documentExportFormats[d.document_type]&&<a className="secondary-button" href={`/api/planning/documents/${d.id}/export/${documentExportFormats[d.document_type]}`}><ArrowDownToLine size={14}/> Export .{documentExportFormats[d.document_type]}</a>}{canReview&&d.review_status==="Draft"&&<button className="secondary-button" onClick={()=>updateDocumentStatus(d,"Reviewed")}><CheckCircle2 size={14}/> Mark reviewed</button>}{canReview&&d.review_status==="Reviewed"&&<button className="primary-button" onClick={()=>updateDocumentStatus(d,"Issued")}><Check size={14}/> Mark issued</button>}</div>
           </article>)}</div>}
         </section>
+        <ProjectDocumentSources category={sourceCategory} project={workspace.project} userRole={userRole} userId={userId}/>
       </>}
     </>}
   </section>;

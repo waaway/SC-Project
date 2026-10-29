@@ -33,7 +33,7 @@ Sign in as an admin and open Users & Access in the sidebar.
 - Project lists are filtered server-side by the user's project permissions.
 
 ## Database
-SQLite is stored at data/sc-control-center.sqlite. It contains users, sessions, projects, per-user page access, per-user project access, and an audit log. Do not commit or share the database file.
+SQLite is stored at data/sc-control-center.sqlite. It contains users, sessions, projects, per-user page access, per-user project access, workflow records, and an audit log. Private document sources are stored under data/project-documents with restricted file permissions. Set `SC_DATA_DIR` to a writable private directory to move the local database, profile pictures, and imported documents together. Do not commit or share this directory.
 
 ## Security notes
 This is a local development build, not yet approved for production client information.
@@ -70,9 +70,14 @@ AI requests are sent to the configured OpenAI API. This may transmit the user's 
 - **Mainload** stores project-specific service assumptions, departments, workload phases, dates, mandays, onsite/offsite allocation and selected team members. Team profiles are scoped to the project and are not copied from other engagements.
 - **Proposal** and **Kick-off** can draft a Manload, Technical Proposal, Organization Chart, Timeline, Team Profile or Kickoff Presentation from the approved brief and plan. The requested draft type must also be available to the signed-in user's page permission.
 - The project brief and plan require a source reference. A Reviewer, Manager or Admin confirms the plan; changes to the brief, plan, phases or team clear that confirmation and require review again.
-- Planning drafts require a separate per-request confirmation before the approved plan and selected team data are sent to the configured AI provider. Output is Markdown saved to the project and follows Draft → Reviewed → Issued status.
+- Planning drafts require a separate per-request confirmation before the approved plan and selected team data are sent to the configured AI provider. Output is saved to the project and follows Draft → Reviewed → Issued status.
 - Audit-document requests require a per-request confirmation and send only that project's confirmed brief and findings to the configured AI provider, with `store:false`.
 - Planning-document requests separately require a per-request confirmation and send only the approved plan data needed for the selected draft. Full biographies and qualifications are sent only for a Team Profile draft; other planning drafts include names and roles only when needed.
-- Source files are not uploaded or parsed in this release. The brief's source-reference field and each finding's evidence-source field are entered by the user; generated documents are Markdown drafts, not formatted Word, PowerPoint, or Excel templates.
+- Source references can now be imported from DOCX, XLSX, PPTX, and PDF files up to 12 MB. Text extraction runs locally; imported originals and text are stored in private, project-scoped storage and are not sent to AI. The user must select the project and type its exact ID before import. Imports that identify another accessible project's ID or client are rejected. Duplicate source files within a project are rejected.
+- Project-specific source imports are available on Mainload, Proposal, Kick-off, Audit Checklist, Audit Report, Close Meeting, and Policy pages. Imported documents appear only for their owning project and require the corresponding page permission and project access to view or download.
+- Structured, no-AI drafts are available for Audit Plan, Audit Checklist, Audit Note, Audit Report, CAR Form, Policy, Procedure, and Close Meeting Summary slides. Drafts can be linked only to an imported source from the same project and follow Draft → Reviewed → Issued review status.
+- Existing Markdown planning and audit drafts can be exported to editable DOCX, XLSX, or PPTX according to document type. Structured Audit Plan, Audit Note, Audit Report and Policy/Procedure drafts export to DOCX; Checklist and CAR Form drafts export to XLSX; Close Meeting Summary drafts export to PPTX. These use an SC Control layout and do not copy client-specific sample templates.
+- PDFs with very little selectable text are flagged for OCR instead of being treated as fully read. OCR is not included yet. Text extraction is capped at 180,000 characters and Office archive expansion at 32 MB; truncated files are clearly marked.
+- These import/export features have not had the requested expert review or production security approval. Continue using anonymized samples only until a qualified auditor and company IT/security review the document structure, accuracy, access controls, retention, and deployment setup.
 - AI output can be incorrect and must be validated by a qualified assessor before being used in a client deliverable.
 - This remains a local development prototype and is not approved for production client data until reviewed by company IT/security.

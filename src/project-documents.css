@@ -1,0 +1,361 @@
+.project-documents-workspace,
+.project-documents-page {
+  display: grid;
+  gap: 18px;
+}
+
+.project-documents-page > .module-heading {
+  margin-bottom: 0;
+}
+
+.project-doc-panel {
+  padding: 22px;
+}
+
+.project-doc-project-picker {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.project-doc-project-picker > label {
+  color: #526273;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-doc-project-picker select,
+.project-doc-field input,
+.project-doc-field select,
+.project-doc-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d8e1e8;
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #1b2b39;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.project-doc-field input:focus,
+.project-doc-field select:focus,
+.project-doc-field textarea:focus,
+.project-doc-project-picker select:focus {
+  border-color: #238c91;
+  box-shadow: 0 0 0 3px rgba(35, 140, 145, .12);
+}
+
+.project-doc-form {
+  display: grid;
+  gap: 16px;
+}
+
+.project-doc-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.project-doc-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-doc-field {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  color: #34495b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-doc-field small {
+  color: #718192;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.project-doc-field input[type="file"] {
+  padding: 8px;
+  font-size: 12px;
+}
+
+.project-doc-field textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.project-doc-target {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid #cfe8e4;
+  border-radius: 10px;
+  background: #f3fbf9;
+  color: #17736e;
+}
+
+.project-doc-target > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.project-doc-target div {
+  display: grid;
+  gap: 3px;
+}
+
+.project-doc-target b {
+  color: #1b4e50;
+  font-size: 12px;
+}
+
+.project-doc-target span {
+  color: #56716f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.project-doc-confirm-grid {
+  align-items: end;
+}
+
+.project-doc-confirm-note {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #f5f7f9;
+  color: #68798a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.project-doc-confirm-note b {
+  color: #263d4f;
+}
+
+.project-doc-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.project-doc-fields-grid > .wide {
+  grid-column: 1 / -1;
+}
+
+.project-doc-actions,
+.project-doc-heading-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.project-doc-actions > span {
+  color: #6e7f8d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.project-doc-heading-actions {
+  justify-content: flex-end;
+}
+
+.project-doc-alert {
+  margin: 0 0 12px;
+}
+
+.project-doc-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border: 1px solid #cfe8dd;
+  border-radius: 9px;
+  background: #f1faf5;
+  color: #24694e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.project-doc-success > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.project-doc-success .icon-button {
+  margin-left: auto;
+}
+
+.project-doc-list {
+  display: grid;
+  gap: 12px;
+}
+
+.project-document-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #e1e8ed;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.project-document-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.project-document-card-head small {
+  display: block;
+  color: #738494;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.project-document-card-head h4 {
+  margin: 4px 0 0;
+  color: #1e3344;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.project-doc-state {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.project-doc-state.pending {
+  background: #fff5e5;
+  color: #94600c;
+}
+
+.project-doc-state.approved {
+  background: #eaf7f1;
+  color: #23704e;
+}
+
+.project-doc-file-meta,
+.project-doc-provenance {
+  display: block;
+  margin-top: 9px;
+  color: #738494;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.project-doc-extraction-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 9px 10px;
+  border: 1px solid #f0d9a6;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #805b17;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.project-doc-extraction-warning svg {
+  flex: 0 0 auto;
+}
+
+.project-doc-preview {
+  margin-top: 10px;
+  border: 1px solid #e5ebef;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
+.project-doc-preview summary {
+  padding: 9px 11px;
+  color: #365268;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.project-doc-preview pre,
+.project-doc-draft-preview {
+  max-height: 360px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border-top: 1px solid #e5ebef;
+  color: #34495b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.project-doc-empty-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 12px;
+  border-top: 1px solid #e5ebef;
+  color: #895d17;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.project-doc-empty-text svg {
+  flex: 0 0 auto;
+}
+
+.project-doc-draft-preview {
+  max-height: 260px;
+  margin-top: 12px;
+  border: 1px solid #e5ebef;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
+.project-document-card > .project-doc-actions {
+  margin-top: 12px;
+}
+
+@media (max-width: 760px) {
+  .project-doc-grid.two,
+  .project-doc-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-doc-fields-grid > .wide {
+    grid-column: auto;
+  }
+
+  .project-doc-project-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .project-doc-project-picker > label {
+    margin-bottom: -6px;
+  }
+
+  .project-doc-panel {
+    padding: 16px;
+  }
+
+  .project-document-card-head {
+    align-items: flex-start;
+  }
+}
