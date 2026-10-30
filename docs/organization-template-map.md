@@ -6,7 +6,7 @@ This map describes how the web forms use the Office templates and the structures
 
 | Web form | Output | Data placement |
 | --- | --- | --- |
-| Mainload | Manload `.xlsx` | Project and customer control fields, revision, phase code/description, mandays, onsite/offsite days, dates, responsible team, and totals. Two worksheets: `M-Onsite` and `M-Offsite`. |
+| Manload | Manload `.xlsx` | Project and customer control fields, revision, phase code/description, mandays, onsite/offsite days, dates, responsible team, and totals. Two worksheets: `M-Onsite` and `M-Offsite`. |
 | Proposal | Technical Proposal `.docx` | Project details, scope, company background, contact, phase descriptions, project management, organization chart, timeline, information gathering, deliverables, and appendix/reference. |
 | Proposal | Organization Chart `.pptx` | Project title and team member names/roles from the selected project. |
 | Proposal | Timeline `.xlsx` | Project metadata, phase code/description, departments, start/end dates, duration, team, and a weekly Gantt view. |

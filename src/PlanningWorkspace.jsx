@@ -48,8 +48,8 @@ export default function PlanningWorkspace({mode,userRole,userId,allowedPages=[],
   const [notice,setNotice]=useState("");
   const canReview=["admin","manager","reviewer"].includes(userRole);
   const documentTypes=documentSets[mode]||documentSets.proposal;
-  const sourceCategory=mode==="setup"?"mainload":mode==="kickoff"?"kickoff":"proposal";
-  const title=mode==="setup"?"Mainload & Project Planning":mode==="kickoff"?"Kickoff Presentation":"Proposal Pack";
+  const sourceCategory=mode==="setup"?"manload":mode==="kickoff"?"kickoff":"proposal";
+  const title=mode==="setup"?"Manload & Project Planning":mode==="kickoff"?"Kickoff Presentation":"Proposal Pack";
   const subtitle=mode==="setup"?"Build a source-backed plan, assign the project team and confirm the workload.":mode==="kickoff"?"Draft the kickoff presentation from this project's confirmed plan.":"Generate proposal, organization chart, timeline and team profile drafts from one approved plan.";
 
   useEffect(()=>{
@@ -204,7 +204,7 @@ export default function PlanningWorkspace({mode,userRole,userId,allowedPages=[],
 
         {mode!=="setup"&&<section className="panel planning-panel planning-generator">
           <div className="panel-heading"><div><h3>{mode==="kickoff"?"Kickoff Presentation":"Proposal Pack Generator"}</h3><p>Generate from the confirmed Project Brief, source-backed plan, schedule and selected project team.</p></div><Sparkles size={17}/></div>
-          {(!briefApproved||!planApproved)&&<div className="planning-gate"><AlertCircle size={15}/><div><b>Project Brief and plan confirmation required</b><p>Open Mainload to complete the plan, then have a Reviewer, Manager or Admin confirm it.</p>{allowedPages.includes("Mainload")&&<button className="text-button" onClick={()=>navigate("Mainload")}>Open Mainload</button>}</div></div>}
+          {(!briefApproved||!planApproved)&&<div className="planning-gate"><AlertCircle size={15}/><div><b>Project Brief and plan confirmation required</b><p>Open Manload to complete the plan, then have a Reviewer, Manager or Admin confirm it.</p>{allowedPages.includes("Manload")&&<button className="text-button" onClick={()=>navigate("Manload")}>Open Manload</button>}</div></div>}
           <div className="planning-form">
             <div className="planning-grid two"><label className="planning-field">Document type<select value={documentType} onChange={e=>{setDocumentType(e.target.value);setAiConsent(false);}}>{documentTypes.map(t=><option key={t} value={t}>{documentLabels[t]}</option>)}</select></label><div className="planning-readiness"><b>Planning data</b><span>{briefApproved?"Brief confirmed":"Brief needs confirmation"} · {planApproved?"Plan confirmed":"Plan needs confirmation"} · {workspace.team?.length||0} selected team members · {workspace.phases?.length||0} phases</span></div></div>
             <label className="planning-consent"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/><span>I confirm this project's planning data and any team details used for this draft are approved for processing by the configured AI provider.</span></label>

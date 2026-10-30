@@ -13,7 +13,7 @@ import {
 import "./styles.css";
 
 const workflow = [
-  { name: "Mainload", desc: "Project intake & scope", icon: FolderKanban, tone: "mint" },
+  { name: "Manload", desc: "Project intake & scope", icon: FolderKanban, tone: "mint" },
   { name: "Proposal", desc: "Proposal & quotation", icon: FileText, tone: "blue" },
   { name: "Kick-off", desc: "Project initiation", icon: CalendarDays, tone: "violet" },
   { name: "Interview Questions", desc: "Client interview preparation", icon: MessageSquareText, tone: "amber" },
@@ -103,14 +103,14 @@ function WorkflowGrid({ navigate, allowedPages = [] }) {
 function ProjectModal({ onClose, onSave }) {
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
-  const [stage, setStage] = useState("Mainload");
+  const [stage, setStage] = useState("Manload");
   const [owner, setOwner] = useState("");
   const submit = e => { e.preventDefault(); if (name.trim() && client.trim()) { onSave({name: name.trim(), client: client.trim(), stage, owner}); onClose(); } };
   return <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><form className="modal" onSubmit={submit}><div className="modal-heading"><div><small>SC WORKSPACE</small><h2>Create new project</h2><p>Add a project to the SC workflow.</p></div><button className="icon-button" type="button" onClick={onClose}><X size={17}/></button></div>
     <label className="field">Project name<input required autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Enter project name"/></label>
     <label className="field">Client / organization<input required value={client} onChange={e => setClient(e.target.value)} placeholder="Enter client name"/></label>
     <div className="field-grid"><label className="field">Starting stage<select value={stage} onChange={e => setStage(e.target.value)}>{workflow.map(w => <option key={w.name}>{w.name}</option>)}</select></label><label className="field">Project owner (optional)<input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="Assign later"/></label></div>
-    <div className="modal-note"><LockKeyhole size={14}/> A new project starts at Mainload with no progress or due date until details are added.</div><div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button type="submit" className="primary-button"><Plus size={15}/> Create project</button></div>
+    <div className="modal-note"><LockKeyhole size={14}/> A new project starts at Manload with no progress or due date until details are added.</div><div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button type="submit" className="primary-button"><Plus size={15}/> Create project</button></div>
   </form></div>;
 }
 
@@ -552,7 +552,7 @@ function App({ user, onLogout, onUserUpdated }) {
         <div className="welcome-row projects-welcome"><div><div className="eyebrow-line"><i/> ENGAGEMENT TRACKER</div><h2>Projects</h2><p>Manage engagements across all eight SC workflow stages.</p></div>{allowedPages.includes("Projects") && user?.access?.canCreateProjects && <button className="primary-button" onClick={() => setShowModal(true)}><Plus size={15}/> New project</button>}</div>
         <div className="stats-grid compact-stats"><StatCard label="Total projects" value={String(projects.length).padStart(2,"0")} change="All stages" note="in this workspace" icon={BriefcaseBusiness} tone="mint"/><StatCard label="In progress" value={String(projects.filter(p => p.status === "In progress").length).padStart(2,"0")} change="Active" note="currently underway" icon={Activity} tone="blue"/><StatCard label="In review" value={String(projects.filter(p => p.status === "Review").length).padStart(2,"0")} change="Attention" note="awaiting review" icon={Clock3} tone="amber" caution/><StatCard label="Planning" value={String(projects.filter(p => p.status === "Planning").length).padStart(2,"0")} change="Upcoming" note="not yet underway" icon={CalendarDays} tone="violet"/></div>
         <section className="panel all-projects"><div className="panel-heading"><div><h3>All engagements</h3><p>Search project name, client, ID or workflow stage.</p></div><label className="table-search"><Search size={14}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter projects"/></label></div><ProjectTable projects={visibleProjects} onOpen={setSelectedProject} loading={projectsLoading}/></section>
-      </> : active === "Mainload" ? <PlanningWorkspace mode="setup" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Proposal" ? <PlanningWorkspace mode="proposal" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Kick-off" ? <PlanningWorkspace mode="kickoff" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Audit Report" && allowedPages.includes("Audit Report") ? <><AuditWorkspace userId={user?.id} userRole={user?.role} /><ProjectDocumentsWorkspace mode="report" userId={user?.id} userRole={user?.role}/></> : active === "Audit Checklist" ? <ProjectDocumentsWorkspace mode="audit" userId={user?.id} userRole={user?.role}/> : active === "Close Meeting" ? <ProjectDocumentsWorkspace mode="close" userId={user?.id} userRole={user?.role}/> : active === "Policy" ? <ProjectDocumentsWorkspace mode="policy" userId={user?.id} userRole={user?.role}/> : <ModulePage name={active} />}
+      </> : active === "Manload" ? <PlanningWorkspace mode="setup" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Proposal" ? <PlanningWorkspace mode="proposal" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Kick-off" ? <PlanningWorkspace mode="kickoff" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Audit Report" && allowedPages.includes("Audit Report") ? <><AuditWorkspace userId={user?.id} userRole={user?.role} /><ProjectDocumentsWorkspace mode="report" userId={user?.id} userRole={user?.role}/></> : active === "Audit Checklist" ? <ProjectDocumentsWorkspace mode="audit" userId={user?.id} userRole={user?.role}/> : active === "Close Meeting" ? <ProjectDocumentsWorkspace mode="close" userId={user?.id} userRole={user?.role}/> : active === "Policy" ? <ProjectDocumentsWorkspace mode="policy" userId={user?.id} userRole={user?.role}/> : <ModulePage name={active} />}
     </div>
     <footer className="app-footer"><span>SC CONTROL CENTER <b>·</b> UI PROTOTYPE 0.1.0</span><span><i/> Development environment <b>|</b> Built for internal use</span></footer>
   </main>

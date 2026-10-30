@@ -20,7 +20,7 @@ import {
 } from "docx";
 
 export const projectDocumentTypes = {
-  manload: { label: "Manload", category: "mainload", page: "Mainload", format: "xlsx", importOnly: true },
+  manload: { label: "Manload", category: "manload", page: "Manload", format: "xlsx", importOnly: true },
   proposal: { label: "Technical Proposal", category: "proposal", page: "Proposal", format: "docx", importOnly: true },
   org_chart: { label: "Organization Chart", category: "proposal", page: "Proposal", format: "pptx", importOnly: true },
   timeline: { label: "Project Timeline", category: "proposal", page: "Proposal", format: "xlsx", importOnly: true },
@@ -39,7 +39,7 @@ export const projectDocumentTypes = {
 };
 
 export const projectDocumentCategories = {
-  mainload: { page: "Mainload", types: ["manload"] },
+  manload: { page: "Manload", types: ["manload"] },
   proposal: { page: "Proposal", types: ["proposal", "org_chart", "timeline", "team_profile"] },
   kickoff: { page: "Kick-off", types: ["kickoff"] },
   audit: { page: "Audit Checklist", types: ["audit_plan", "audit_checklist", "audit_note"] },
@@ -708,7 +708,7 @@ async function exportPlanningPptx(type,data) {
   if(type==="org_chart"){
     const slide=pptx.addSlide();addPlanningSlideHeader(pptx,slide,"PROJECT TEAM AND REPORTING LINES",index++);const members=data.team.slice(0,12);const width=3.5,gap=0.35,startX=(13.333-(Math.min(3,members.length)*width+(Math.min(3,members.length)-1)*gap))/2;
     members.forEach((m,i)=>{const col=i%3,row=Math.floor(i/3),x=startX+col*(width+gap),y=1.35+row*1.55;slide.addShape(pptx.ShapeType.rect,{x,y,w:width,h:1.15,rectRadius:0.06,line:{color:"B8CBD6",width:1},fill:{color:row===0?"E8F4F3":"FFFFFF"}});slide.addText(m.display_name,{x:x+0.12,y:y+0.14,w:width-0.24,h:0.3,fontFace:"Aptos",fontSize:15,bold:true,color:"163B53",margin:0,fit:"shrink"});slide.addText(m.role_title,{x:x+0.12,y:y+0.54,w:width-0.24,h:0.42,fontFace:"Aptos",fontSize:12,color:"456274",margin:0,fit:"shrink",valign:"top"});});
-    if(!members.length)slide.addText("Add project team members in Mainload before exporting the organization chart.",{x:0.9,y:2,w:11,h:1,fontFace:"Aptos",fontSize:18,color:"64748B",margin:0.1});
+    if(!members.length)slide.addText("Add project team members in Manload before exporting the organization chart.",{x:0.9,y:2,w:11,h:1,fontFace:"Aptos",fontSize:18,color:"64748B",margin:0.1});
   } else {
     textSlide("Organization profile","Consultant organization",data.plan.consultant_profile);
     textSlide("Scope Of Work","Objective and scope",[data.brief.service_name,data.brief.project_scope].filter(Boolean).join("\n\n"));

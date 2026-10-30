@@ -4,7 +4,7 @@ import { masterTemplateFields } from "../shared/masterTemplateFields.js";
 import "./project-documents.css";
 
 const categoryTitles = {
-  mainload: "Mainload Source Documents",
+  manload: "Manload Source Documents",
   proposal: "Proposal Source Documents",
   kickoff: "Kick-off Source Documents",
   audit: "Audit Plan, Checklist & Notes",
@@ -13,7 +13,7 @@ const categoryTitles = {
   policy: "Policy & Procedure"
 };
 const categoryTypes = {
-  mainload: ["manload"],
+  manload: ["manload"],
   proposal: ["proposal", "org_chart", "timeline", "team_profile"],
   kickoff: ["kickoff"],
   audit: ["audit_plan", "audit_checklist", "audit_note"],

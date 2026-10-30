@@ -304,7 +304,7 @@ db.exec(`
   );
 `);
 const basePermissions = [
-  ...["Dashboard","Projects","Mainload","Proposal","Kick-off","Interview Questions","Audit Checklist","Audit Report","Close Meeting","Policy","AI Assistant"].map(p=>({key:`page:${p}`,label:`Access ${p} page`,category:"Pages"})),
+  ...["Dashboard","Projects","Manload","Proposal","Kick-off","Interview Questions","Audit Checklist","Audit Report","Close Meeting","Policy","AI Assistant"].map(p=>({key:`page:${p}`,label:`Access ${p} page`,category:"Pages"})),
   {key:"projects:view",label:"View all projects and project data",category:"Projects"},
   {key:"projects:create",label:"Create new projects",category:"Projects"},
   {key:"projects:manage_access",label:"Manage user project access",category:"Projects"},
@@ -316,6 +316,19 @@ const basePermissions = [
 ];
 const insertPermission = db.prepare("INSERT INTO permissions(permission_key,label,category) VALUES(?,?,?) ON CONFLICT(permission_key) DO UPDATE SET label=excluded.label,category=excluded.category");
 basePermissions.forEach(p=>insertPermission.run(p.key,p.label,p.category));
+db.exec("BEGIN IMMEDIATE;");
+try {
+  db.prepare("INSERT OR IGNORE INTO role_permissions(role_id,permission_key) SELECT role_id,'page:Manload' FROM role_permissions WHERE permission_key='page:Mainload'").run();
+  db.prepare("DELETE FROM user_page_access WHERE page_key='Mainload' AND EXISTS (SELECT 1 FROM user_page_access current WHERE current.user_id=user_page_access.user_id AND current.page_key='Manload')").run();
+  db.prepare("UPDATE user_page_access SET page_key='Manload' WHERE page_key='Mainload'").run();
+  db.prepare("DELETE FROM role_permissions WHERE permission_key='page:Mainload'").run();
+  db.prepare("DELETE FROM permissions WHERE permission_key='page:Mainload'").run();
+  db.prepare("UPDATE projects SET stage='Manload' WHERE stage='Mainload'").run();
+  db.exec("COMMIT;");
+} catch (error) {
+  db.exec("ROLLBACK;");
+  throw error;
+}
 const systemRoles = [
   {slug:"admin",name:"Admin",description:"Full system access",perms:[...basePermissions.map(p=>p.key),"projects:create","projects:manage_access","users:view","users:create","users:delete","roles:manage","audit:view"]},
   {slug:"manager",name:"Manager",description:"Operational and project access without user or role administration",perms:[...basePermissions.filter(p=>p.key.startsWith("page:")).map(p=>p.key),"projects:view","projects:create","projects:manage_access"]},
@@ -372,7 +385,7 @@ app.use((req, _res, next) => {
   next();
 });
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, message: { error: "Too many failed sign-in attempts. For your security, please wait 15 minutes before trying again." } });
-const stages = ["Mainload","Proposal","Kick-off","Interview Questions","Audit Checklist","Audit Report","Close Meeting","Policy"];
+const stages = ["Manload","Proposal","Kick-off","Interview Questions","Audit Checklist","Audit Report","Close Meeting","Policy"];
 const allPages = ["Dashboard", "Projects", ...stages, "AI Assistant"];
 const projectCreatorRoles = new Set(["admin", "manager"]);
 function userHasPermission(user, key) {
@@ -593,8 +606,8 @@ function requireAuditProject(req, res, next) {
   req.auditProject = project;
   next();
 }
-const planningPageNames = ["Mainload","Proposal","Kick-off"];
-const planningDocumentPages = {manload:"Mainload",proposal:"Proposal",org_chart:"Proposal",timeline:"Proposal",team_profile:"Proposal",kickoff:"Kick-off"};
+const planningPageNames = ["Manload","Proposal","Kick-off"];
+const planningDocumentPages = {manload:"Manload",proposal:"Proposal",org_chart:"Proposal",timeline:"Proposal",team_profile:"Proposal",kickoff:"Kick-off"};
 function requirePlanningDocumentPage(req, res, next) {
   const page = planningDocumentPages[cleanAuditField(req.body?.documentType,40)];
   if (!page) return res.status(400).json({error:"Choose an available planning document type."});
@@ -830,7 +843,7 @@ function normalizePlanPhase(body) {
 }
 function planningProjectData(projectId,user) {
   const storedPlan = db.prepare("SELECT service_summary,planned_duration_days,in_scope_headcount,delivery_mode,communications_language,document_language,in_scope_departments,primary_storage,third_parties,payment_terms,assumptions,source_reference,consultant_profile,proposal_contact_name,proposal_contact_role,proposal_contact_phone,proposal_contact_email,deliverables,proposal_revision,prepared_by,is_approved,updated_by,approved_by,approved_at,updated_at FROM project_plans WHERE project_id=?").get(projectId) || null;
-  const canViewPlanningDetails = hasWorkflowPage(user,"Mainload");
+  const canViewPlanningDetails = hasWorkflowPage(user,"Manload");
   const plan = storedPlan && canViewPlanningDetails ? storedPlan : storedPlan ? {is_approved:storedPlan.is_approved,approved_at:storedPlan.approved_at} : null;
   const allPhases = db.prepare("SELECT id,phase_code,phase_name,start_date,end_date,duration_days,mandays,onsite_days,offsite_days,responsible_members,position,created_at,updated_at FROM project_plan_phases WHERE project_id=? ORDER BY position,id").all(projectId);
   const phases = canViewPlanningDetails ? allPhases : allPhases.map(({id})=>({id}));
@@ -867,7 +880,7 @@ app.get("/api/planning/projects/:projectId/template-export/:documentType", requi
   const documentType=cleanAuditField(req.params.documentType,40);
   const page=planningDocumentPages[documentType];
   if(!page)return res.status(400).json({error:"Choose an available planning template."});
-  if(!hasWorkflowPage(req.user,page)||!hasWorkflowPage(req.user,"Mainload"))return res.status(403).json({error:"You need access to this workflow and Mainload planning data to export the template."});
+  if(!hasWorkflowPage(req.user,page)||!hasWorkflowPage(req.user,"Manload"))return res.status(403).json({error:"You need access to this workflow and Manload planning data to export the template."});
   const project=req.planningProject;
   const brief=db.prepare("SELECT standard,service_name,project_scope,locations,audit_start,audit_end,source_reference,is_approved FROM audit_project_briefs WHERE project_id=?").get(project.id);
   const plan=db.prepare("SELECT * FROM project_plans WHERE project_id=?").get(project.id);
@@ -884,7 +897,7 @@ app.get("/api/planning/projects/:projectId/template-export/:documentType", requi
     res.setHeader("Content-Disposition",`attachment; filename="${safeDownloadName(`${project.id}-${documentType}-template`)}.${output.extension}"`);res.end(output.buffer);
   }catch{return res.status(500).json({error:"Could not create the filled Office template."});}
 });
-app.put("/api/planning/projects/:projectId/plan", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, (req,res) => {
+app.put("/api/planning/projects/:projectId/plan", requireAuth, requireWorkflowPage("Manload"), requirePlanningProject, (req,res) => {
   const plannedDurationDays = planNumber(req.body.plannedDurationDays,{integer:true,max:5000});
   const inScopeHeadcount = req.body.inScopeHeadcount === "" || req.body.inScopeHeadcount == null ? null : planNumber(req.body.inScopeHeadcount,{integer:true,max:100000});
   if (plannedDurationDays === null || inScopeHeadcount === null && !(req.body.inScopeHeadcount === "" || req.body.inScopeHeadcount == null)) return res.status(400).json({error:"Duration and people count must be whole non-negative numbers."});
@@ -924,7 +937,7 @@ app.put("/api/planning/projects/:projectId/plan", requireAuth, requireWorkflowPa
   logAction(req.user.id,"UPDATE_PROJECT_PLAN","project",req.planningProject.id);
   res.json({planning:planningProjectData(req.planningProject.id,req.user)});
 });
-app.post("/api/planning/projects/:projectId/plan/approve", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, requireAuditReviewer, (req,res) => {
+app.post("/api/planning/projects/:projectId/plan/approve", requireAuth, requireWorkflowPage("Manload"), requirePlanningProject, requireAuditReviewer, (req,res) => {
   const plan = db.prepare("SELECT service_summary,source_reference FROM project_plans WHERE project_id=?").get(req.planningProject.id);
   const brief = db.prepare("SELECT is_approved FROM audit_project_briefs WHERE project_id=?").get(req.planningProject.id);
   const phaseCount = db.prepare("SELECT COUNT(*) AS count FROM project_plan_phases WHERE project_id=?").get(req.planningProject.id).count;
@@ -933,7 +946,7 @@ app.post("/api/planning/projects/:projectId/plan/approve", requireAuth, requireW
   logAction(req.user.id,"CONFIRM_PROJECT_PLAN","project",req.planningProject.id);
   res.json({planning:planningProjectData(req.planningProject.id,req.user)});
 });
-app.post("/api/planning/projects/:projectId/phases", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, (req,res) => {
+app.post("/api/planning/projects/:projectId/phases", requireAuth, requireWorkflowPage("Manload"), requirePlanningProject, (req,res) => {
   const parsed = normalizePlanPhase(req.body);
   if (parsed.error) return res.status(400).json({error:parsed.error});
   const p = parsed.phase;
@@ -949,7 +962,7 @@ app.post("/api/planning/projects/:projectId/phases", requireAuth, requireWorkflo
     return res.status(500).json({error:"Could not save the project phase."});
   }
 });
-app.patch("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Mainload"), requirePlanMutationProject, (req,res) => {
+app.patch("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Manload"), requirePlanMutationProject, (req,res) => {
   const id=Number(req.params.phaseId); const current=db.prepare("SELECT * FROM project_plan_phases WHERE id=?").get(id);
   const parsed=normalizePlanPhase({...current,phaseCode:req.body.phaseCode??current.phase_code,phaseName:req.body.phaseName??current.phase_name,startDate:req.body.startDate??current.start_date,endDate:req.body.endDate??current.end_date,durationDays:req.body.durationDays??current.duration_days,mandays:req.body.mandays??current.mandays,onsiteDays:req.body.onsiteDays??current.onsite_days,offsiteDays:req.body.offsiteDays??current.offsite_days,responsibleMembers:req.body.responsibleMembers??current.responsible_members});
   if (parsed.error) return res.status(400).json({error:parsed.error}); const p=parsed.phase;
@@ -963,11 +976,11 @@ app.patch("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Mai
     return res.status(500).json({error:"Could not update the project phase."});
   }
 });
-app.delete("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Mainload"), requirePlanMutationProject, (req,res) => {
+app.delete("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Manload"), requirePlanMutationProject, (req,res) => {
   const id=Number(req.params.phaseId); db.prepare("DELETE FROM project_plan_phases WHERE id=?").run(id); invalidateProjectPlan(req.planningProjectId);
   logAction(req.user.id,"DELETE_PROJECT_PHASE","project_phase",String(id)); res.json({planning:planningProjectData(req.planningProjectId,req.user)});
 });
-app.post("/api/planning/projects/:projectId/team", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, (req,res) => {
+app.post("/api/planning/projects/:projectId/team", requireAuth, requireWorkflowPage("Manload"), requirePlanningProject, (req,res) => {
   const member={displayName:cleanAuditField(req.body.displayName,180),roleTitle:cleanAuditField(req.body.roleTitle,180),biography:cleanAuditField(req.body.biography,4000),education:cleanAuditField(req.body.education,2000),qualifications:cleanAuditField(req.body.qualifications,2000),experience:cleanAuditField(req.body.experience,6000)};
   if(!member.displayName||!member.roleTitle) return res.status(400).json({error:"Add the team member's name and project role."});
   const position=db.prepare("SELECT COALESCE(MAX(position),0)+1 AS next FROM project_team_members WHERE project_id=?").get(req.planningProject.id).next;
@@ -975,7 +988,7 @@ app.post("/api/planning/projects/:projectId/team", requireAuth, requireWorkflowP
   invalidateProjectPlan(req.planningProject.id); logAction(req.user.id,"ADD_PROJECT_TEAM_MEMBER","project_team_member",String(result.lastInsertRowid));
   res.status(201).json({planning:planningProjectData(req.planningProject.id,req.user)});
 });
-app.patch("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Mainload"), requirePlanMutationProject, (req,res) => {
+app.patch("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Manload"), requirePlanMutationProject, (req,res) => {
   const id=Number(req.params.memberId); const current=db.prepare("SELECT * FROM project_team_members WHERE id=?").get(id);
   const member={displayName:cleanAuditField(req.body.displayName??current.display_name,180),roleTitle:cleanAuditField(req.body.roleTitle??current.role_title,180),biography:cleanAuditField(req.body.biography??current.biography,4000),education:cleanAuditField(req.body.education??current.education,2000),qualifications:cleanAuditField(req.body.qualifications??current.qualifications,2000),experience:cleanAuditField(req.body.experience??current.experience,6000)};
   if(!member.displayName||!member.roleTitle) return res.status(400).json({error:"Add the team member's name and project role."});
@@ -983,7 +996,7 @@ app.patch("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Main
   invalidateProjectPlan(req.planningProjectId); logAction(req.user.id,"UPDATE_PROJECT_TEAM_MEMBER","project_team_member",String(id));
   res.json({planning:planningProjectData(req.planningProjectId,req.user)});
 });
-app.delete("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Mainload"), requirePlanMutationProject, (req,res) => {
+app.delete("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Manload"), requirePlanMutationProject, (req,res) => {
   const id=Number(req.params.memberId); db.prepare("DELETE FROM project_team_members WHERE id=?").run(id); invalidateProjectPlan(req.planningProjectId);
   logAction(req.user.id,"DELETE_PROJECT_TEAM_MEMBER","project_team_member",String(id)); res.json({planning:planningProjectData(req.planningProjectId,req.user)});
 });
@@ -994,7 +1007,7 @@ app.post("/api/planning/projects/:projectId/documents", requireAuth, requirePlan
   if(!apiKey) return res.status(503).json({error:"AI is not configured yet. Add OPENAI_API_KEY to the server-side .env file, then restart SC Control Center."});
   const brief=db.prepare("SELECT standard,service_name,project_scope,locations,audit_start,audit_end,source_reference,is_approved FROM audit_project_briefs WHERE project_id=?").get(req.planningProject.id);
   const plan=db.prepare("SELECT * FROM project_plans WHERE project_id=?").get(req.planningProject.id);
-  if(brief?.is_approved!==1||!plan||plan.is_approved!==1) return res.status(409).json({error:"Confirm the project brief and planning data in Mainload before generating this document."});
+  if(brief?.is_approved!==1||!plan||plan.is_approved!==1) return res.status(409).json({error:"Confirm the project brief and planning data in Manload before generating this document."});
   const phases=db.prepare("SELECT phase_code,phase_name,start_date,end_date,duration_days,mandays,onsite_days,offsite_days,responsible_members FROM project_plan_phases WHERE project_id=? ORDER BY position,id").all(req.planningProject.id);
   const team=db.prepare("SELECT display_name,role_title,biography,education,qualifications FROM project_team_members WHERE project_id=? ORDER BY position,id").all(req.planningProject.id);
   if(!phases.length) return res.status(409).json({error:"Add at least one project phase before generating planning documents."});
@@ -1338,7 +1351,7 @@ app.post("/api/projects", requireAuth, (req, res) => {
   if (!userHasPermission(req.user,"page:Projects")) return res.status(403).json({error:"You do not have permission to create projects."});
   const name = String(req.body.name || "").trim();
   const client = String(req.body.client || "").trim();
-  const stage = String(req.body.stage || "Mainload");
+  const stage = String(req.body.stage || "Manload");
   const owner = String(req.body.owner || req.user.username).trim();
   if (!name || name.length > 160 || !client || client.length > 160) return res.status(400).json({ error: "Please provide a project name and client name (maximum 160 characters)." });
   if (!stages.includes(stage)) return res.status(400).json({ error: "Invalid workflow stage." });
