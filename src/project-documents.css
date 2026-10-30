@@ -333,6 +333,57 @@
   margin-top: 12px;
 }
 
+.project-template-inputs {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #dfe8ed;
+  border-radius: 12px;
+  background: #f8fbfc;
+}
+
+.project-template-inputs > .panel-heading {
+  margin: 0 0 8px;
+}
+
+.project-template-inputs h4 {
+  margin: 0;
+  color: #163b53;
+  font-size: 13px;
+}
+
+.project-template-inputs p {
+  margin: 4px 0 0;
+  color: #667b8b;
+  font-size: 11px;
+}
+
+.project-template-group {
+  margin-top: 8px;
+  overflow: hidden;
+  border: 1px solid #e1e9ee;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.project-template-group > summary {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  color: #2a4a60;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.project-template-group > summary span {
+  color: #718494;
+  font-weight: 500;
+}
+
+.project-template-group[open] > .project-doc-fields-grid {
+  padding: 0 12px 12px;
+}
+
 @media (max-width: 760px) {
   .project-doc-grid.two,
   .project-doc-fields-grid {

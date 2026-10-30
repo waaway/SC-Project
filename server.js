@@ -10,6 +10,7 @@ import fs from "node:fs";
 import {
   createProjectDocumentMarkdown,
   exportMarkdownProjectDocument,
+  exportPlanningProjectDocument,
   exportProjectDocument,
   extractImportedDocument,
   normalizeProjectDocumentFields,
@@ -173,6 +174,14 @@ db.exec(`
     payment_terms TEXT NOT NULL DEFAULT '',
     assumptions TEXT NOT NULL DEFAULT '',
     source_reference TEXT NOT NULL DEFAULT '',
+    consultant_profile TEXT NOT NULL DEFAULT '',
+    proposal_contact_name TEXT NOT NULL DEFAULT '',
+    proposal_contact_role TEXT NOT NULL DEFAULT '',
+    proposal_contact_phone TEXT NOT NULL DEFAULT '',
+    proposal_contact_email TEXT NOT NULL DEFAULT '',
+    deliverables TEXT NOT NULL DEFAULT '',
+    proposal_revision TEXT NOT NULL DEFAULT '1.0',
+    prepared_by TEXT NOT NULL DEFAULT '',
     is_approved INTEGER NOT NULL DEFAULT 0 CHECK(is_approved IN (0,1)),
     updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -207,6 +216,7 @@ db.exec(`
     biography TEXT NOT NULL DEFAULT '',
     education TEXT NOT NULL DEFAULT '',
     qualifications TEXT NOT NULL DEFAULT '',
+    experience TEXT NOT NULL DEFAULT '',
     position INTEGER NOT NULL DEFAULT 0,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -254,6 +264,10 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS project_documents_project_idx ON project_documents(project_id,document_type,created_at DESC);
 `);
+const projectPlanColumns=db.prepare("PRAGMA table_info(project_plans)").all().map(column=>column.name);
+for(const [name,definition] of [["consultant_profile","TEXT NOT NULL DEFAULT ''"],["proposal_contact_name","TEXT NOT NULL DEFAULT ''"],["proposal_contact_role","TEXT NOT NULL DEFAULT ''"],["proposal_contact_phone","TEXT NOT NULL DEFAULT ''"],["proposal_contact_email","TEXT NOT NULL DEFAULT ''"],["deliverables","TEXT NOT NULL DEFAULT ''"],["proposal_revision","TEXT NOT NULL DEFAULT '1.0'"],["prepared_by","TEXT NOT NULL DEFAULT ''"]]) if(!projectPlanColumns.includes(name)) db.exec(`ALTER TABLE project_plans ADD COLUMN ${name} ${definition}`);
+const projectTeamColumns=db.prepare("PRAGMA table_info(project_team_members)").all().map(column=>column.name);
+if(!projectTeamColumns.includes("experience"))db.exec("ALTER TABLE project_team_members ADD COLUMN experience TEXT NOT NULL DEFAULT ''");
 const projectDocumentColumns=db.prepare("PRAGMA table_info(project_documents)").all().map(column=>column.name);
 if(!projectDocumentColumns.includes("extraction_status"))db.exec("ALTER TABLE project_documents ADD COLUMN extraction_status TEXT NOT NULL DEFAULT 'not_applicable'");
 // Add self-service profile picture metadata to existing databases.
@@ -815,12 +829,12 @@ function normalizePlanPhase(body) {
   return {phase};
 }
 function planningProjectData(projectId,user) {
-  const storedPlan = db.prepare("SELECT service_summary,planned_duration_days,in_scope_headcount,delivery_mode,communications_language,document_language,in_scope_departments,primary_storage,third_parties,payment_terms,assumptions,source_reference,is_approved,updated_by,approved_by,approved_at,updated_at FROM project_plans WHERE project_id=?").get(projectId) || null;
+  const storedPlan = db.prepare("SELECT service_summary,planned_duration_days,in_scope_headcount,delivery_mode,communications_language,document_language,in_scope_departments,primary_storage,third_parties,payment_terms,assumptions,source_reference,consultant_profile,proposal_contact_name,proposal_contact_role,proposal_contact_phone,proposal_contact_email,deliverables,proposal_revision,prepared_by,is_approved,updated_by,approved_by,approved_at,updated_at FROM project_plans WHERE project_id=?").get(projectId) || null;
   const canViewPlanningDetails = hasWorkflowPage(user,"Mainload");
   const plan = storedPlan && canViewPlanningDetails ? storedPlan : storedPlan ? {is_approved:storedPlan.is_approved,approved_at:storedPlan.approved_at} : null;
   const allPhases = db.prepare("SELECT id,phase_code,phase_name,start_date,end_date,duration_days,mandays,onsite_days,offsite_days,responsible_members,position,created_at,updated_at FROM project_plan_phases WHERE project_id=? ORDER BY position,id").all(projectId);
   const phases = canViewPlanningDetails ? allPhases : allPhases.map(({id})=>({id}));
-  const allTeam = db.prepare("SELECT id,display_name,role_title,biography,education,qualifications,position,created_at,updated_at FROM project_team_members WHERE project_id=? ORDER BY position,id").all(projectId);
+  const allTeam = db.prepare("SELECT id,display_name,role_title,biography,education,qualifications,experience,position,created_at,updated_at FROM project_team_members WHERE project_id=? ORDER BY position,id").all(projectId);
   const team = canViewPlanningDetails ? allTeam : allTeam.map(({id})=>({id}));
   const documents = db.prepare("SELECT id,document_type,title,content_markdown,model,review_status,created_by,reviewed_by,reviewed_at,created_at FROM planning_documents WHERE project_id=? ORDER BY id DESC LIMIT 30").all(projectId)
     .filter(document=>hasWorkflowPage(user,planningDocumentPages[document.document_type]));
@@ -849,6 +863,27 @@ app.get("/api/planning/projects/:projectId", requireAuth, requireAnyWorkflowPage
   res.setHeader("Cache-Control","private, no-store");
   res.json({project:req.planningProject,brief,...planningProjectData(req.planningProject.id,req.user)});
 });
+app.get("/api/planning/projects/:projectId/template-export/:documentType", requireAuth, requirePlanningProject, async (req,res) => {
+  const documentType=cleanAuditField(req.params.documentType,40);
+  const page=planningDocumentPages[documentType];
+  if(!page)return res.status(400).json({error:"Choose an available planning template."});
+  if(!hasWorkflowPage(req.user,page)||!hasWorkflowPage(req.user,"Mainload"))return res.status(403).json({error:"You need access to this workflow and Mainload planning data to export the template."});
+  const project=req.planningProject;
+  const brief=db.prepare("SELECT standard,service_name,project_scope,locations,audit_start,audit_end,source_reference,is_approved FROM audit_project_briefs WHERE project_id=?").get(project.id);
+  const plan=db.prepare("SELECT * FROM project_plans WHERE project_id=?").get(project.id);
+  const phases=db.prepare("SELECT phase_code,phase_name,start_date,end_date,duration_days,mandays,onsite_days,offsite_days,responsible_members FROM project_plan_phases WHERE project_id=? ORDER BY position,id").all(project.id);
+  const team=db.prepare("SELECT display_name,role_title,biography,education,qualifications,experience FROM project_team_members WHERE project_id=? ORDER BY position,id").all(project.id);
+  if(brief?.is_approved!==1||plan?.is_approved!==1)return res.status(409).json({error:"Confirm the project brief and saved plan before downloading a filled organization template."});
+  if(!phases.length)return res.status(409).json({error:"Add at least one phase before generating a template."});
+  if(documentType==="timeline"&&phases.some(phase=>!phase.start_date||!phase.end_date))return res.status(409).json({error:"Add start and end dates to every phase before generating the Timeline."});
+  if(["org_chart","team_profile"].includes(documentType)&&!team.length)return res.status(409).json({error:"Add project team members before generating this template."});
+  try{
+    const output=await exportPlanningProjectDocument(documentType,{project,brief,plan,phases,team});
+    logAction(req.user.id,"EXPORT_PLANNING_TEMPLATE","project",project.id);
+    res.setHeader("Cache-Control","private, no-store");res.setHeader("Content-Type",output.mimeType);res.setHeader("X-Content-Type-Options","nosniff");
+    res.setHeader("Content-Disposition",`attachment; filename="${safeDownloadName(`${project.id}-${documentType}-template`)}.${output.extension}"`);res.end(output.buffer);
+  }catch{return res.status(500).json({error:"Could not create the filled Office template."});}
+});
 app.put("/api/planning/projects/:projectId/plan", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, (req,res) => {
   const plannedDurationDays = planNumber(req.body.plannedDurationDays,{integer:true,max:5000});
   const inScopeHeadcount = req.body.inScopeHeadcount === "" || req.body.inScopeHeadcount == null ? null : planNumber(req.body.inScopeHeadcount,{integer:true,max:100000});
@@ -867,16 +902,25 @@ app.put("/api/planning/projects/:projectId/plan", requireAuth, requireWorkflowPa
     thirdParties:cleanAuditField(req.body.thirdParties,4000),
     paymentTerms:cleanAuditField(req.body.paymentTerms,2000),
     assumptions:cleanAuditField(req.body.assumptions,4000),
-    sourceReference:cleanAuditField(req.body.sourceReference,4000)
+    sourceReference:cleanAuditField(req.body.sourceReference,4000),
+    consultantProfile:cleanAuditField(req.body.consultantProfile,6000),
+    proposalContactName:cleanAuditField(req.body.proposalContactName,180),
+    proposalContactRole:cleanAuditField(req.body.proposalContactRole,180),
+    proposalContactPhone:cleanAuditField(req.body.proposalContactPhone,80),
+    proposalContactEmail:cleanAuditField(req.body.proposalContactEmail,254),
+    deliverables:cleanAuditField(req.body.deliverables,6000),
+    proposalRevision:cleanAuditField(req.body.proposalRevision||"1.0",40),
+    preparedBy:cleanAuditField(req.body.preparedBy,180)
   };
   if (!plan.serviceSummary) return res.status(400).json({error:"Describe the planned service before saving."});
-  db.prepare(`INSERT INTO project_plans (project_id,service_summary,planned_duration_days,in_scope_headcount,delivery_mode,communications_language,document_language,in_scope_departments,primary_storage,third_parties,payment_terms,assumptions,source_reference,updated_by)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  db.prepare(`INSERT INTO project_plans (project_id,service_summary,planned_duration_days,in_scope_headcount,delivery_mode,communications_language,document_language,in_scope_departments,primary_storage,third_parties,payment_terms,assumptions,source_reference,consultant_profile,proposal_contact_name,proposal_contact_role,proposal_contact_phone,proposal_contact_email,deliverables,proposal_revision,prepared_by,updated_by)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(project_id) DO UPDATE SET service_summary=excluded.service_summary,planned_duration_days=excluded.planned_duration_days,in_scope_headcount=excluded.in_scope_headcount,
       delivery_mode=excluded.delivery_mode,communications_language=excluded.communications_language,document_language=excluded.document_language,in_scope_departments=excluded.in_scope_departments,
       primary_storage=excluded.primary_storage,third_parties=excluded.third_parties,payment_terms=excluded.payment_terms,assumptions=excluded.assumptions,source_reference=excluded.source_reference,
+      consultant_profile=excluded.consultant_profile,proposal_contact_name=excluded.proposal_contact_name,proposal_contact_role=excluded.proposal_contact_role,proposal_contact_phone=excluded.proposal_contact_phone,proposal_contact_email=excluded.proposal_contact_email,deliverables=excluded.deliverables,proposal_revision=excluded.proposal_revision,prepared_by=excluded.prepared_by,
       is_approved=0,approved_by=NULL,approved_at=NULL,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
-    .run(req.planningProject.id,plan.serviceSummary,plan.plannedDurationDays,plan.inScopeHeadcount,plan.deliveryMode,plan.communicationsLanguage,plan.documentLanguage,plan.inScopeDepartments,plan.primaryStorage,plan.thirdParties,plan.paymentTerms,plan.assumptions,plan.sourceReference,req.user.id);
+    .run(req.planningProject.id,plan.serviceSummary,plan.plannedDurationDays,plan.inScopeHeadcount,plan.deliveryMode,plan.communicationsLanguage,plan.documentLanguage,plan.inScopeDepartments,plan.primaryStorage,plan.thirdParties,plan.paymentTerms,plan.assumptions,plan.sourceReference,plan.consultantProfile,plan.proposalContactName,plan.proposalContactRole,plan.proposalContactPhone,plan.proposalContactEmail,plan.deliverables,plan.proposalRevision,plan.preparedBy,req.user.id);
   logAction(req.user.id,"UPDATE_PROJECT_PLAN","project",req.planningProject.id);
   res.json({planning:planningProjectData(req.planningProject.id,req.user)});
 });
@@ -924,18 +968,18 @@ app.delete("/api/planning/phases/:phaseId", requireAuth, requireWorkflowPage("Ma
   logAction(req.user.id,"DELETE_PROJECT_PHASE","project_phase",String(id)); res.json({planning:planningProjectData(req.planningProjectId,req.user)});
 });
 app.post("/api/planning/projects/:projectId/team", requireAuth, requireWorkflowPage("Mainload"), requirePlanningProject, (req,res) => {
-  const member={displayName:cleanAuditField(req.body.displayName,180),roleTitle:cleanAuditField(req.body.roleTitle,180),biography:cleanAuditField(req.body.biography,4000),education:cleanAuditField(req.body.education,2000),qualifications:cleanAuditField(req.body.qualifications,2000)};
+  const member={displayName:cleanAuditField(req.body.displayName,180),roleTitle:cleanAuditField(req.body.roleTitle,180),biography:cleanAuditField(req.body.biography,4000),education:cleanAuditField(req.body.education,2000),qualifications:cleanAuditField(req.body.qualifications,2000),experience:cleanAuditField(req.body.experience,6000)};
   if(!member.displayName||!member.roleTitle) return res.status(400).json({error:"Add the team member's name and project role."});
   const position=db.prepare("SELECT COALESCE(MAX(position),0)+1 AS next FROM project_team_members WHERE project_id=?").get(req.planningProject.id).next;
-  const result=db.prepare("INSERT INTO project_team_members (project_id,display_name,role_title,biography,education,qualifications,position,created_by,updated_by) VALUES (?,?,?,?,?,?,?,?,?)").run(req.planningProject.id,member.displayName,member.roleTitle,member.biography,member.education,member.qualifications,position,req.user.id,req.user.id);
+  const result=db.prepare("INSERT INTO project_team_members (project_id,display_name,role_title,biography,education,qualifications,experience,position,created_by,updated_by) VALUES (?,?,?,?,?,?,?,?,?,?)").run(req.planningProject.id,member.displayName,member.roleTitle,member.biography,member.education,member.qualifications,member.experience,position,req.user.id,req.user.id);
   invalidateProjectPlan(req.planningProject.id); logAction(req.user.id,"ADD_PROJECT_TEAM_MEMBER","project_team_member",String(result.lastInsertRowid));
   res.status(201).json({planning:planningProjectData(req.planningProject.id,req.user)});
 });
 app.patch("/api/planning/team/:memberId", requireAuth, requireWorkflowPage("Mainload"), requirePlanMutationProject, (req,res) => {
   const id=Number(req.params.memberId); const current=db.prepare("SELECT * FROM project_team_members WHERE id=?").get(id);
-  const member={displayName:cleanAuditField(req.body.displayName??current.display_name,180),roleTitle:cleanAuditField(req.body.roleTitle??current.role_title,180),biography:cleanAuditField(req.body.biography??current.biography,4000),education:cleanAuditField(req.body.education??current.education,2000),qualifications:cleanAuditField(req.body.qualifications??current.qualifications,2000)};
+  const member={displayName:cleanAuditField(req.body.displayName??current.display_name,180),roleTitle:cleanAuditField(req.body.roleTitle??current.role_title,180),biography:cleanAuditField(req.body.biography??current.biography,4000),education:cleanAuditField(req.body.education??current.education,2000),qualifications:cleanAuditField(req.body.qualifications??current.qualifications,2000),experience:cleanAuditField(req.body.experience??current.experience,6000)};
   if(!member.displayName||!member.roleTitle) return res.status(400).json({error:"Add the team member's name and project role."});
-  db.prepare("UPDATE project_team_members SET display_name=?,role_title=?,biography=?,education=?,qualifications=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").run(member.displayName,member.roleTitle,member.biography,member.education,member.qualifications,req.user.id,id);
+  db.prepare("UPDATE project_team_members SET display_name=?,role_title=?,biography=?,education=?,qualifications=?,experience=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").run(member.displayName,member.roleTitle,member.biography,member.education,member.qualifications,member.experience,req.user.id,id);
   invalidateProjectPlan(req.planningProjectId); logAction(req.user.id,"UPDATE_PROJECT_TEAM_MEMBER","project_team_member",String(id));
   res.json({planning:planningProjectData(req.planningProjectId,req.user)});
 });
@@ -1070,7 +1114,7 @@ function requireStoredProjectDocument(req,res,next) {
 }
 function normalizeProjectDocumentTitle(type, fields, project) {
   const typedTitle = cleanAuditField(fields.title,180);
-  const base = ["policy","procedure"].includes(type) && typedTitle ? typedTitle : `${projectDocumentTypes[type].label} - ${project.name}`;
+  const base = ["isms_manual","policy","procedure","user_access_procedure"].includes(type) && typedTitle ? typedTitle : `${projectDocumentTypes[type].label} - ${project.name}`;
   return base.slice(0,220);
 }
 function validateDocumentSource(projectId, sourceDocumentId) {

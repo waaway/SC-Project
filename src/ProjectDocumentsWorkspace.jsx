@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowDownToLine, Check, CheckCircle2, FileCheck2, FileText, LoaderCircle, Plus, RefreshCw, Save, ShieldCheck, Upload, X } from "lucide-react";
+import { masterTemplateFields } from "../shared/masterTemplateFields.js";
 import "./project-documents.css";
 
 const categoryTitles = {
@@ -18,7 +19,7 @@ const categoryTypes = {
   audit: ["audit_plan", "audit_checklist", "audit_note"],
   report: ["audit_report", "car_form"],
   close: ["close_meeting"],
-  policy: ["policy", "procedure"]
+  policy: ["isms_manual", "policy", "procedure", "user_access_procedure"]
 };
 const labels = {
   manload: "Manload",
@@ -33,8 +34,10 @@ const labels = {
   audit_report: "Audit Report",
   car_form: "Corrective Action Request Form",
   close_meeting: "Close Meeting Slide - Audit Summary",
-  policy: "Policy",
-  procedure: "Procedure"
+  isms_manual: "ISMS Manual",
+  policy: "IT Security Policy",
+  procedure: "Internal Audit Procedure",
+  user_access_procedure: "User Access Management Procedure"
 };
 const exportFormats = {
   audit_plan: "docx",
@@ -42,55 +45,69 @@ const exportFormats = {
   audit_note: "docx",
   audit_report: "docx",
   car_form: "xlsx",
+  isms_manual: "docx",
   policy: "docx",
   procedure: "docx",
+  user_access_procedure: "docx",
   close_meeting: "pptx"
 };
+const masterTemplateKeyByType = {
+  isms_manual: "isms_manual",
+  policy: "security_policy",
+  procedure: "internal_audit_procedure",
+  user_access_procedure: "user_access_procedure"
+};
+const documentControlFields = [
+  ["documentCode", "Document code", false], ["revision", "Revision", false], ["effectiveDate", "Effective date", false],
+  ["reviewDate", "Next review date", false], ["classification", "Classification", false],
+  ["preparedBy", "Prepared by", false], ["preparedDate", "Prepared date", false],
+  ["reviewedBy", "Reviewed by", false], ["reviewedDate", "Review date", false],
+  ["approvedBy", "Approved by", false], ["approvedDate", "Approval date", false]
+];
 const formFields = {
   audit_plan: [
+    ...documentControlFields,
     ["standard", "Audit standard", false], ["objective", "Audit objective", true], ["scope", "Scope", true],
     ["criteria", "Audit criteria", true], ["method", "Audit method", true], ["locations", "Locations", false],
-    ["auditDates", "Audit dates", false], ["auditTeam", "Audit team", true], ["agenda", "Schedule and agenda", true],
+    ["auditDates", "Audit dates", false], ["auditTeam", "Audit team and roles", true], ["auditeeContact", "Auditee contact / department", true], ["agenda", "Schedule and agenda", true],
     ["risks", "Risks and dependencies", true], ["references", "References and source documents", true]
   ],
   audit_report: [
+    ...documentControlFields,
     ["standard", "Audit standard", false], ["objective", "Audit objective", true], ["scope", "Audit scope", true],
-    ["criteria", "Audit criteria", true], ["method", "Audit approach", true], ["findingsSummary", "Findings and classification summary", true],
+    ["criteria", "Audit criteria", true], ["method", "Audit approach", true], ["auditDates", "Audit dates", false], ["locations", "Audit locations", true],
+    ["auditTeam", "Audit team and roles", true], ["auditeeContact", "Auditee and contacts", true], ["findingsSummary", "Findings and classification summary", true],
+    ["findingDetails", "Finding details / references", true],
     ["conclusion", "Conclusion", true], ["recommendations", "Recommendations", true], ["reviewerChecklist", "Reviewer checklist", true],
     ["references", "References and evidence sources", true]
   ],
   car_form: [
+    ["documentCode", "CAR / report number", false], ["revision", "Revision", false], ["issueDate", "Issue date", false],
+    ["preparedBy", "Prepared by", false], ["preparedDate", "Prepared date", false], ["reviewedBy", "Reviewed by", false],
+    ["reviewedDate", "Review date", false], ["approvedBy", "Approved by", false], ["approvedDate", "Approval date", false],
     ["controlReference", "Control or clause", false], ["classification", "Classification", false], ["department", "Department", false],
-    ["findingTitle", "Finding title", true], ["evidence", "Objective evidence", true], ["evidenceSource", "Evidence source", true],
+    ["findingTitle", "Finding title", true], ["evidence", "Objective evidence / finding description", true], ["evidenceSource", "Evidence source", true],
     ["impact", "Impact", true], ["rootCause", "Root cause", true], ["correction", "Correction", true],
-    ["correctiveAction", "Corrective action", true], ["actionOwner", "Action owner", false], ["dueDate", "Due date", false],
-    ["effectivenessCheck", "Effectiveness check", true]
+    ["correctiveAction", "Corrective action plan", true], ["actionOwner", "Responsible person", false], ["dueDate", "Planned implementation date", false],
+    ["actualImplementationDate", "Actual implementation date", false], ["implementationEvidence", "Implementation evidence", true],
+    ["concernedManager", "Concerned department manager", false], ["effectivenessCheck", "Effectiveness check and closure", true], ["effectivenessDate", "Verification date", false]
   ],
   audit_checklist: [
-    ["standard", "Audit standard", false], ["scope", "Scope", true],
-    ["checklistItems", "Checklist rows", true, "One row per line: control | topic | question | expected evidence"],
+    ...documentControlFields,
+    ["standard", "Audit standard", false], ["scope", "Scope", true], ["locations", "Audit location", false], ["auditeeContact", "Auditee / department", true],
+    ["auditDates", "Audit dates", false], ["checklistItems", "Checklist rows", true, "One row per line: control | requirement | question | expected evidence | result | auditor note"],
     ["references", "References and source documents", true]
   ],
   audit_note: [
+    ...documentControlFields,
     ["sessionDate", "Session date and time", false], ["session", "Session or process", false],
-    ["department", "Department", false], ["participants", "Participants", true],
+    ["department", "Department / auditee", false], ["participants", "Participants and roles", true],
     ["controlReference", "Control or requirement reference", false], ["evidence", "Evidence reviewed", true],
     ["observations", "Auditor notes and observations", true], ["openQuestions", "Open questions", true],
     ["followUp", "Follow-up actions", true]
   ],
-  policy: [
-    ["documentCode", "Document code and version", false], ["title", "Policy title", false],
-    ["purpose", "Purpose", true], ["scope", "Scope", true], ["policyStatement", "Policy statement", true],
-    ["responsibilities", "Roles and responsibilities", true], ["reviewCycle", "Approval and review cycle", true],
-    ["references", "References", true]
-  ],
-  procedure: [
-    ["documentCode", "Document code and version", false], ["title", "Procedure title", false],
-    ["purpose", "Purpose", true], ["scope", "Scope", true], ["responsibilities", "Roles and responsibilities", true],
-    ["procedureSteps", "Procedure steps", true], ["records", "Records and retention", true],
-    ["reviewCycle", "Approval and review cycle", true], ["references", "References", true]
-  ],
   close_meeting: [
+    ...documentControlFields,
     ["meetingDate", "Meeting date", false], ["engagement", "Engagement and attendees", true],
     ["objective", "Audit objective", true], ["scope", "Audit scope", true], ["resultsSummary", "Audit summary", true],
     ["findingsSummary", "Confirmed findings and classification counts", true], ["decisions", "Decisions and open items", true],
@@ -105,7 +122,10 @@ async function readResponse(response) {
 }
 
 function blankFields(type) {
-  return Object.fromEntries((formFields[type] || []).map(([key]) => [key, ""]));
+  const values = Object.fromEntries((formFields[type] || []).map(([key]) => [key, ""]));
+  const template = masterTemplateFields[masterTemplateKeyByType[type]];
+  if (template) values.templateValues = Object.fromEntries(template.tokens.map(item => [item.token, ""]));
+  return values;
 }
 
 async function fileToBase64(file) {
@@ -334,6 +354,7 @@ export default function ProjectDocumentsWorkspace({ mode, userRole, userId }) {
     setNotice("");
     setPageError("");
   };
+  const activeTemplate = masterTemplateFields[masterTemplateKeyByType[documentType]];
 
   return <section className="module-page project-documents-page">
     <div className="module-heading"><span className="module-icon blue"><FileCheck2 size={24}/></span><div><small>SC WORKFLOW / {category.toUpperCase()}</small><h2>{categoryTitles[category] || "Project Documents"}</h2><p>Read project sources locally, create structured drafts without AI, and export editable Office files.</p></div></div>
@@ -349,6 +370,14 @@ export default function ProjectDocumentsWorkspace({ mode, userRole, userId }) {
           <form className="project-doc-form" onSubmit={saveDraft}>
             <div className="project-doc-grid two"><label className="project-doc-field">Document type<select value={documentType} onChange={e => selectType(e.target.value)}>{editableTypes.map(type => <option key={type} value={type}>{labels[type]}</option>)}</select></label><label className="project-doc-field">Supporting source from this project<select value={fields.sourceDocumentId || ""} onChange={e => setFields(current => ({ ...current, sourceDocumentId: e.target.value }))}><option value="">No source linked</option>{importedSources.map(document => <option key={document.id} value={document.id}>{document.source_filename}</option>)}</select><small>Imported references from other projects are never available here.</small></label></div>
             <div className="project-doc-fields-grid">{(formFields[documentType] || []).map(([key, label, multiline, placeholder]) => <label className={`project-doc-field ${multiline ? "wide" : ""}`} key={key}>{label}{multiline ? <textarea value={fields[key] || ""} onChange={e => setFields(current => ({ ...current, [key]: e.target.value }))} placeholder={placeholder || "Enter verified project information"}/> : <input value={fields[key] || ""} onChange={e => setFields(current => ({ ...current, [key]: e.target.value }))} placeholder="Enter verified project information"/>}{key === "checklistItems" && <small>Columns export to Excel: control, topic, question, evidence, result and auditor notes.</small>}</label>)}</div>
+            {activeTemplate && <section className="project-template-inputs">
+              <div className="panel-heading"><div><h4>Fields found in the organization template</h4><p>Fill only the placeholders that apply. Blank fields stay visibly marked for completion in the Word file.</p></div></div>
+              {activeTemplate.tokens.some(item => item.token === "[LOGO]") && <p className="project-template-note">The logo is an image placeholder. Insert the approved logo in Word after exporting.</p>}
+              {[...new Set(activeTemplate.tokens.filter(item => item.token !== "[LOGO]").map(item => item.group))].map(group => {
+                const groupFields = activeTemplate.tokens.filter(item => item.group === group && item.token !== "[LOGO]");
+                return <details className="project-template-group" key={group}><summary>{group}<span>{groupFields.length} fields</span></summary><div className="project-doc-fields-grid">{groupFields.map(item => <label className={`project-doc-field ${item.multiline ? "wide" : ""}`} key={item.token}>{item.label}{item.multiline ? <textarea value={fields.templateValues?.[item.token] || ""} onChange={e => setFields(current => ({ ...current, templateValues: { ...(current.templateValues || {}), [item.token]: e.target.value } }))} placeholder="Enter approved organization information"/> : <input value={fields.templateValues?.[item.token] || ""} onChange={e => setFields(current => ({ ...current, templateValues: { ...(current.templateValues || {}), [item.token]: e.target.value } }))} placeholder="Enter approved organization information"/>}</label>)}</div></details>;
+              })}
+            </section>}
             <div className="project-doc-grid two project-doc-confirm-grid"><label className="project-doc-field">Type project ID to confirm this destination<input value={confirmProjectId} onChange={e => setConfirmProjectId(e.target.value)} placeholder={project.id} autoComplete="off" spellCheck="false"/></label><div className="project-doc-confirm-note">Client: <b>{project.client}</b><br/>Project: <b>{project.id}</b></div></div>
             <div className="project-doc-actions"><button className="primary-button" type="submit" disabled={saving || confirmProjectId !== project.id}><Save size={14}/>{saving ? "Saving..." : editingDocumentId ? "Save draft revision" : "Save draft"}</button>{editingDocumentId && <button className="secondary-button" type="button" onClick={() => { setEditingDocumentId(null); setFields(blankFields(documentType)); setConfirmProjectId(""); }}>Cancel edit</button>}<span>{canReview ? "A reviewer must review the draft before it is issued." : "A Reviewer, Manager or Admin must review this draft before issue."}</span></div>
           </form>
