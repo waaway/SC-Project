@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ShieldCheck, LockKeyhole, UserRound, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { ShieldCheck, LockKeyhole, UserRound, Eye, EyeOff, LoaderCircle, Sun, Moon } from "lucide-react";
 import "./auth.css";
 
-export default function AuthGate({ children, onAuthenticated }) {
+export default function AuthGate({ children, onAuthenticated, theme = "dark", onToggleTheme }) {
   const [mode, setMode] = useState("loading");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +36,7 @@ export default function AuthGate({ children, onAuthenticated }) {
   };
 
   if (mode === "authenticated") return children;
-  return <div className="auth-screen"><div className="auth-geometry auth-geometry-one"/><div className="auth-geometry auth-geometry-two"/>
+  return <div className="auth-screen"><button className="theme-toggle auth-theme-toggle icon-button" onClick={onToggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}><span className="theme-toggle-icon">{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>}</span><span className="theme-toggle-label">{theme === "dark" ? "Dark" : "Light"}</span></button><div className="auth-geometry auth-geometry-one"/><div className="auth-geometry auth-geometry-two"/>
     <section className="auth-brand-panel">
       <div className="ecq-wordmark"><img src="/images/ecq-logo.svg" alt="ECQ" /></div>
       <div className="brand-divider"/>

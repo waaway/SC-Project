@@ -8,9 +8,10 @@ import {
   Activity, ArrowUpRight, Bell, BookOpen, BriefcaseBusiness, CalendarDays, LogOut,
   Check, ChevronDown, ChevronRight, ClipboardCheck, Clock3, FileCheck2,
   FileText, FolderKanban, LayoutDashboard, LockKeyhole, Menu, MessageSquareText,
-  MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Sparkles, Trash2, Users, ImagePlus, X, Zap, Eye, EyeOff, Bot, Send
+  MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Sparkles, Trash2, Users, ImagePlus, X, Zap, Eye, EyeOff, Bot, Send, Sun, Moon
 } from "lucide-react";
 import "./styles.css";
+import "./theme.css";
 
 const workflow = [
   { name: "Manload", desc: "Project intake & scope", icon: FolderKanban, tone: "mint" },
@@ -68,13 +69,14 @@ function Sidebar({ active, navigate, mobileOpen, closeMobile, username, role, ro
   </>;
 }
 
-function Topbar({ title, subtitle, search, setSearch, onCreate, canCreate, onMobileMenu, onLogout, username, hasAvatar, avatarUpdatedAt, navigate }) {
+function Topbar({ title, subtitle, search, setSearch, onCreate, canCreate, onMobileMenu, onLogout, username, hasAvatar, avatarUpdatedAt, navigate, theme, onToggleTheme }) {
   return <header className="topbar">
     <button className="mobile-menu icon-button" onClick={onMobileMenu}><Menu size={20}/></button>
     <div className="page-title"><div className="breadcrumb">SC WORKSPACE <ChevronRight size={12}/> <span>{title.toUpperCase()}</span></div><h1>{title}</h1><p>{subtitle}</p></div>
     <div className="top-actions">
       <label className="global-search"><Search size={15}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects..."/><kbd>⌘ K</kbd></label>
       <button className="icon-button" aria-label="Notifications not configured" title="Notifications are not configured yet" disabled><Bell size={17}/></button>
+      <button className="theme-toggle icon-button" onClick={onToggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}><span className="theme-toggle-icon">{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>}</span><span className="theme-toggle-label">{theme === "dark" ? "Dark" : "Light"}</span></button>
       <div className="top-separator"/>
       <button className="icon-button" title="Sign out" aria-label="Sign out" onClick={onLogout}><LogOut size={16}/></button>
       {canCreate && <button className="primary-button new-project" onClick={onCreate}><Plus size={16}/> New project</button>}
@@ -515,7 +517,7 @@ function AuditLogPage() {
   </section>;
 }
 
-function App({ user, onLogout, onUserUpdated }) {
+function App({ user, onLogout, onUserUpdated, theme, onToggleTheme }) {
   const allowedPages = user?.access?.pages || [];
   const currentDate = new Date();
   const greeting = currentDate.getHours() < 12 ? "Good morning" : currentDate.getHours() < 18 ? "Good afternoon" : "Good evening";
@@ -535,7 +537,7 @@ function App({ user, onLogout, onUserUpdated }) {
   const subtitle = active === "Dashboard" ? "Your team's security engagements, at a glance." : active === "Projects" ? "Track every client engagement from intake to close-out." : active === "My Profile" ? "Manage your sign-in details and account security." : active === "Audit Logs" ? "Review account activity and important security events." : active === "AI Assistant" ? "Security guidance for authorized assessment work." : (workflow.find(w => w.name === active)?.desc || "Workspace preferences and access configuration.");
   useEffect(() => { if (!allowedPages.includes(active)) setActive(allowedPages[0] || "Dashboard"); }, [active, user?.id]);
   return <div className="app-shell"><Sidebar active={active} navigate={navigate} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} username={user?.username} role={user?.role} roleName={user?.role_name} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at} allowedPages={allowedPages}/><main className="main-area">
-    <Topbar title={active} subtitle={subtitle} search={search} setSearch={setSearch} navigate={navigate} onCreate={() => setShowModal(true)} canCreate={active === "Projects" && allowedPages.includes("Projects") && !!user?.access?.canCreateProjects} onMobileMenu={() => setMobileOpen(true)} onLogout={onLogout} username={user?.username} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at}/>
+    <Topbar title={active} subtitle={subtitle} search={search} setSearch={setSearch} navigate={navigate} onCreate={() => setShowModal(true)} canCreate={active === "Projects" && allowedPages.includes("Projects") && !!user?.access?.canCreateProjects} onMobileMenu={() => setMobileOpen(true)} onLogout={onLogout} username={user?.username} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at} theme={theme} onToggleTheme={onToggleTheme}/>
     {dbError && <div className="db-warning"><LockKeyhole size={14}/>{dbError}</div>}
     <div className="content">
       {active === "My Profile" ? <MyProfilePage user={user} onUpdated={onUserUpdated}/> : active === "Settings" && (allowedPages.includes("Settings")) ? <AdminAccessPage currentUserId={user?.id} role={user?.role}/> : active === "Audit Logs" && user?.access?.pages?.includes("Audit Logs") ? <AuditLogPage /> : active === "AI Assistant" && allowedPages.includes("AI Assistant") ? <AIAssistantPage /> : active === "Dashboard" ? <>
@@ -562,10 +564,20 @@ function App({ user, onLogout, onUserUpdated }) {
 }
 
 function Root() {
+  const [theme, setTheme] = useState(() => {
+    try { return window.localStorage.getItem("sc-control-theme") === "light" ? "light" : "dark"; }
+    catch { return "dark"; }
+  });
   const [session, setSession] = useState(null);
   const [authKey, setAuthKey] = useState(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    try { window.localStorage.setItem("sc-control-theme", theme); } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme(current => current === "dark" ? "light" : "dark");
   const logout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -583,7 +595,7 @@ function Root() {
     }
   };
   return <>
-    <AuthGate key={authKey} onAuthenticated={setSession}>{session ? <App user={{...session.user,access:session.access}} onLogout={() => setShowLogoutConfirm(true)} onUserUpdated={setSession}/> : <SessionApp onSession={setSession}/>}</AuthGate>
+    <AuthGate key={authKey} onAuthenticated={setSession} theme={theme} onToggleTheme={toggleTheme}>{session ? <App user={{...session.user,access:session.access}} onLogout={() => setShowLogoutConfirm(true)} onUserUpdated={setSession} theme={theme} onToggleTheme={toggleTheme}/> : <SessionApp onSession={setSession}/>}</AuthGate>
     {showLogoutConfirm && session && <div className="modal-backdrop logout-confirm-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!loggingOut)setShowLogoutConfirm(false)}}><section className="modal logout-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title"><div className="logout-confirm-icon"><LogOut size={22}/></div><div className="modal-heading logout-confirm-heading"><div><small>SC CONTROL CENTER</small><h2 id="logout-confirm-title">Sign out</h2><p>Are you sure you want to sign out?</p></div><button type="button" className="icon-button" aria-label="Cancel sign out" disabled={loggingOut} onClick={()=>setShowLogoutConfirm(false)}><X size={17}/></button></div><div className="modal-actions"><button type="button" className="secondary-button" disabled={loggingOut} onClick={()=>setShowLogoutConfirm(false)}>Cancel</button><button type="button" className="primary-button logout-confirm-button" disabled={loggingOut} onClick={logout}><LogOut size={15}/>{loggingOut?"Signing out…":"Sign out"}</button></div></section></div>}
   </>;
 }
