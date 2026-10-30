@@ -1,6 +1,6 @@
 # SC Control Center
 
-Internal-workspace prototype for the Security Consulting (SC) team.
+Internal-workspace prototype for the Security Compliance (SC) team.
 
 ## Stack
 - React + Vite

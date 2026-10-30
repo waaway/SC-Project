@@ -41,7 +41,7 @@ function Sidebar({ active, navigate, mobileOpen, closeMobile, username, role, ro
   return <>
     {mobileOpen && <div className="mobile-scrim" onClick={closeMobile} />}
     <aside className={"sidebar " + (mobileOpen ? "sidebar-open" : "")}>
-      <div className="brand"><Logo/><div><strong>SC <span>CONTROL</span></strong><small>ECQ SECURITY CONSULTING</small></div><button className="close-menu icon-button" onClick={closeMobile}><X size={17}/></button></div>
+      <div className="brand"><Logo/><div><strong>SC <span>CONTROL</span></strong><small>ECQ SECURITY COMPLIANCE</small></div><button className="close-menu icon-button" onClick={closeMobile}><X size={17}/></button></div>
       <div className="workspace-switch"><div className="workspace-monogram">SC</div><div className="workspace-label"><b>SC Workspace</b><span>Internal environment</span></div><ChevronDown size={14}/></div>
       <div className="nav-caption">WORKSPACE</div>
       <nav>
