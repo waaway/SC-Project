@@ -1,0 +1,1454 @@
+{
+  "isms_manual": {
+    "file": "isms_manual.docx",
+    "label": "ISMS Manual",
+    "tokens": [
+      {
+        "token": "[APPLICABLE LAWS AND REGULATIONS]",
+        "label": "Applicable Laws And Regulations",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVAL ROLE 1]",
+        "label": "Approval Role 1",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVAL ROLE 2]",
+        "label": "Approval Role 2",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVAL ROLE 3]",
+        "label": "Approval Role 3",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVAL ROLE 4]",
+        "label": "Approval Role 4",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED BY]",
+        "label": "Approved By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED DATE]",
+        "label": "Approved Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION]",
+        "label": "Classification",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CUSTOMER SECURITY REQUIREMENTS / TOR]",
+        "label": "Customer Security Requirements / Tor",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[DOCUMENT CODE]",
+        "label": "Document Code",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT CONTROLLER]",
+        "label": "Document Controller",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT GROUP PREFIX]",
+        "label": "Document Group Prefix",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT REVIEW FREQUENCY]",
+        "label": "Document Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[DOCUMENT TYPE CODES]",
+        "label": "Document Type Codes",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[EFFECTIVE DATE]",
+        "label": "Effective Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[IN-SCOPE DEPARTMENT/PROCESS 1]",
+        "label": "In-Scope Department/Process 1",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[IN-SCOPE DEPARTMENT/PROCESS 2]",
+        "label": "In-Scope Department/Process 2",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[INTERNAL AUDIT FREQUENCY]",
+        "label": "Internal Audit Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[ISMS WORKING TEAM]",
+        "label": "Isms Working Team",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[LEGAL FORM AND COUNTRY OF INCORPORATION]",
+        "label": "Legal Form And Country Of Incorporation",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[LOGO]",
+        "label": "Logo",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[MANAGEMENT REPRESENTATIVE]",
+        "label": "Management Representative",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[MANAGEMENT REVIEW FREQUENCY]",
+        "label": "Management Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[NATURAL AND ENVIRONMENTAL THREATS]",
+        "label": "Natural And Environmental Threats",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[NEXT REVIEW DATE]",
+        "label": "Next Review Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[ORGANISATION NAME]",
+        "label": "Organisation Name",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED BY]",
+        "label": "Prepared By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED DATE]",
+        "label": "Prepared Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED BY]",
+        "label": "Reviewed By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED DATE]",
+        "label": "Reviewed Date",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[REVISION]",
+        "label": "Revision",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[RISK ASSESSMENT FREQUENCY]",
+        "label": "Risk Assessment Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[RUNNING NUMBER DIGITS]",
+        "label": "Running Number Digits",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SITE ADDRESS]",
+        "label": "Site Address",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[SITE NAME]",
+        "label": "Site Name",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[STEERING COMMITTEE]",
+        "label": "Steering Committee",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[TRAINING RECORDS OWNER]",
+        "label": "Training Records Owner",
+        "group": "Audit and records",
+        "multiline": false
+      }
+    ]
+  },
+  "security_policy": {
+    "file": "security_policy.docx",
+    "label": "IT Security Policy",
+    "tokens": [
+      {
+        "token": "[ACCESS REVIEW FREQUENCY]",
+        "label": "Access Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[ACCESS REVIEWER]",
+        "label": "Access Reviewer",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[ACCESS REVOCATION TIMEFRAME]",
+        "label": "Access Revocation Timeframe",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ACCOUNT ADMINISTRATOR]",
+        "label": "Account Administrator",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ADDITIONAL MONITORING USE CASES]",
+        "label": "Additional Monitoring Use Cases",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ALARM HOURS]",
+        "label": "Alarm Hours",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ALERT RECIPIENTS]",
+        "label": "Alert Recipients",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ANTI-MALWARE SOLUTION]",
+        "label": "Anti-Malware Solution",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED BY]",
+        "label": "Approved By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED COURIER]",
+        "label": "Approved Courier",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED DATE]",
+        "label": "Approved Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ASSET RETURN DEPARTMENT]",
+        "label": "Asset Return Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[AUTHORISED SERVER ACCESS ROLES]",
+        "label": "Authorised Server Access Roles",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[AUTHORITY CONTACT DEPARTMENT]",
+        "label": "Authority Contact Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[AWARENESS ACCOUNTABLE POSITION]",
+        "label": "Awareness Accountable Position",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[AWARENESS OWNER]",
+        "label": "Awareness Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BACKUP MEDIA]",
+        "label": "Backup Media",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BACKUP RESTORE TEST FREQUENCY AND SCOPE]",
+        "label": "Backup Restore Test Frequency And Scope",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[BCP STATUS STATEMENT]",
+        "label": "Bcp Status Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BUILDING AGREEMENT]",
+        "label": "Building Agreement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BUILDING EMERGENCY ARRANGEMENTS]",
+        "label": "Building Emergency Arrangements",
+        "group": "Roles and operating controls",
+        "multiline": true
+      },
+      {
+        "token": "[BUILDING MONITORING PROVIDER]",
+        "label": "Building Monitoring Provider",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BUILDING OWNER]",
+        "label": "Building Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[BUSINESS CONTINUITY ARRANGEMENTS]",
+        "label": "Business Continuity Arrangements",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[BYOD STATEMENT]",
+        "label": "Byod Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CASB SOLUTION]",
+        "label": "Casb Solution",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CCTV MAINTENANCE FREQUENCY]",
+        "label": "Cctv Maintenance Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[CCTV MONITORING STATEMENT]",
+        "label": "Cctv Monitoring Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION LEVEL 1]",
+        "label": "Classification Level 1",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION LEVEL 2]",
+        "label": "Classification Level 2",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION LEVEL 3]",
+        "label": "Classification Level 3",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION LEVEL 4]",
+        "label": "Classification Level 4",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION LEVELS]",
+        "label": "Classification Levels",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION]",
+        "label": "Classification",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLOUD APPROVAL AUTHORITY]",
+        "label": "Cloud Approval Authority",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CLOUD WORKLOAD PROTECTION TOOLS]",
+        "label": "Cloud Workload Protection Tools",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CONFIDENTIALITY DECLARATION]",
+        "label": "Confidentiality Declaration",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CONTINUITY ARCHITECTURE]",
+        "label": "Continuity Architecture",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CORE BUSINESS DESCRIPTION]",
+        "label": "Core Business Description",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[CORE BUSINESS SYSTEMS]",
+        "label": "Core Business Systems",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[CORRECTIVE ACTION DEPARTMENT]",
+        "label": "Corrective Action Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[CORRECTIVE ACTION OWNER]",
+        "label": "Corrective Action Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CRITICAL IT FACILITIES]",
+        "label": "Critical It Facilities",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CRITICAL PATCH TIMELINE]",
+        "label": "Critical Patch Timeline",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CRITICAL SERVICES]",
+        "label": "Critical Services",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[DATA CONTROLLER TERM]",
+        "label": "Data Controller Term",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DATA SUBJECT TERM]",
+        "label": "Data Subject Term",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DELIVERY POINT]",
+        "label": "Delivery Point",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DIGITAL ASSET LOCATION STATEMENT]",
+        "label": "Digital Asset Location Statement",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[DISK ENCRYPTION]",
+        "label": "Disk Encryption",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT CODE]",
+        "label": "Document Code",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[EFFECTIVE DATE]",
+        "label": "Effective Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[EMERGENCY RELEASE TEST FREQUENCY]",
+        "label": "Emergency Release Test Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[ENCRYPTION APPROVER]",
+        "label": "Encryption Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ENDPOINT CONTROL MECHANISM]",
+        "label": "Endpoint Control Mechanism",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ENHANCED SCREENING CHECKS]",
+        "label": "Enhanced Screening Checks",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ENVIRONMENTAL RECORD RETENTION]",
+        "label": "Environmental Record Retention",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[EQUIPMENT HOSTING STATEMENT]",
+        "label": "Equipment Hosting Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[EQUIPMENT INSURANCE STATEMENT]",
+        "label": "Equipment Insurance Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[EXIT CLEARANCE TEAMS]",
+        "label": "Exit Clearance Teams",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[FILE SYSTEM PERMISSION MODEL]",
+        "label": "File System Permission Model",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[HOSTING / CLOUD PROVIDER]",
+        "label": "Hosting / Cloud Provider",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[HR CONTACT]",
+        "label": "Hr Contact",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT ANALYST POSITION]",
+        "label": "Incident Analyst Position",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT CONTACT ROLE]",
+        "label": "Incident Contact Role",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT ESCALATION POSITION]",
+        "label": "Incident Escalation Position",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT MANAGEMENT FUNCTION]",
+        "label": "Incident Management Function",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT REPORTING E-MAIL]",
+        "label": "Incident Reporting E-Mail",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INCIDENT REVIEW FREQUENCY]",
+        "label": "Incident Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[INDUSTRY GROUP]",
+        "label": "Industry Group",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INTELLECTUAL PROPERTY ASSETS]",
+        "label": "Intellectual Property Assets",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INTERNAL AUDIT FREQUENCY]",
+        "label": "Internal Audit Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[LOCKOUT THRESHOLD]",
+        "label": "Lockout Threshold",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[LOG RETENTION PERIOD]",
+        "label": "Log Retention Period",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[LOG REVIEW FREQUENCY]",
+        "label": "Log Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[LOG REVIEWER]",
+        "label": "Log Reviewer",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[LOGGING / SIEM TOOL]",
+        "label": "Logging / Siem Tool",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[LOGO]",
+        "label": "Logo",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[MANAGEMENT REPRESENTATIVE]",
+        "label": "Management Representative",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[MEDIA DISPOSAL OWNER]",
+        "label": "Media Disposal Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[MFA REQUIREMENT]",
+        "label": "Mfa Requirement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[MINIMUM PASSWORD LENGTH]",
+        "label": "Minimum Password Length",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[MINIMUM PIN LENGTH]",
+        "label": "Minimum Pin Length",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[NETWORK ADMINISTRATOR]",
+        "label": "Network Administrator",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[NETWORK CHANGE APPROVER]",
+        "label": "Network Change Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[NETWORK SCANNING APPROVER]",
+        "label": "Network Scanning Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[NEXT REVIEW DATE]",
+        "label": "Next Review Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[OFFICE ENTRY CONTROL]",
+        "label": "Office Entry Control",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[OPERATIONAL INTELLIGENCE COLLECTOR]",
+        "label": "Operational Intelligence Collector",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[OPERATIONAL INTELLIGENCE SOURCES]",
+        "label": "Operational Intelligence Sources",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ORGANISATION NAME]",
+        "label": "Organisation Name",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PASSWORD CHANGE INTERVAL]",
+        "label": "Password Change Interval",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PENETRATION TEST FREQUENCY]",
+        "label": "Penetration Test Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[PEOPLE CONTROLS OWNER]",
+        "label": "People Controls Owner",
+        "group": "Roles and operating controls",
+        "multiline": true
+      },
+      {
+        "token": "[PERSONAL DATA INVENTORY OWNER]",
+        "label": "Personal Data Inventory Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PHYSICAL SECURITY DEPARTMENT]",
+        "label": "Physical Security Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PHYSICAL THREAT EXPOSURE STATEMENT]",
+        "label": "Physical Threat Exposure Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[POLICY ACKNOWLEDGEMENT FORM]",
+        "label": "Policy Acknowledgement Form",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[POLICY EXCEPTION APPROVER]",
+        "label": "Policy Exception Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[POLICY REVIEW FREQUENCY]",
+        "label": "Policy Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[POWER BACKUP SYSTEMS]",
+        "label": "Power Backup Systems",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED BY]",
+        "label": "Prepared By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED DATE]",
+        "label": "Prepared Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PRIMARY STORAGE LOCATION]",
+        "label": "Primary Storage Location",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PRIVACY CONTROLS OWNER]",
+        "label": "Privacy Controls Owner",
+        "group": "Roles and operating controls",
+        "multiline": true
+      },
+      {
+        "token": "[PRIVACY REGULATION OWNER]",
+        "label": "Privacy Regulation Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PRIVILEGED ACCESS REVIEW FREQUENCY]",
+        "label": "Privileged Access Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[PROFESSIONAL ASSOCIATION]",
+        "label": "Professional Association",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REFERENCE TIME SOURCE]",
+        "label": "Reference Time Source",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REMOTE ACCESS TECHNOLOGY]",
+        "label": "Remote Access Technology",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REMOTE WORKING STATEMENT]",
+        "label": "Remote Working Statement",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REMOVABLE MEDIA APPROVER]",
+        "label": "Removable Media Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REMOVABLE MEDIA RULE]",
+        "label": "Removable Media Rule",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED BY]",
+        "label": "Reviewed By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED DATE]",
+        "label": "Reviewed Date",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[REVISION]",
+        "label": "Revision",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[SCHEDULED REVIEW FREQUENCY]",
+        "label": "Scheduled Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[SCREEN LOCK TIMEOUT]",
+        "label": "Screen Lock Timeout",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SECURE AREA ACCESS REVIEW FREQUENCY]",
+        "label": "Secure Area Access Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[SECURE AREAS]",
+        "label": "Secure Areas",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SECURE CODING TRAINING FREQUENCY]",
+        "label": "Secure Coding Training Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[SECURITY BREACH ANALYSIS DEPARTMENT]",
+        "label": "Security Breach Analysis Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[SECURITY CLEARANCE DEPARTMENT]",
+        "label": "Security Clearance Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[SECURITY FORUM / CERT]",
+        "label": "Security Forum / Cert",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SECURITY OFFICER ROLE]",
+        "label": "Security Officer Role",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SECURITY REPRESENTATIVE ROLE]",
+        "label": "Security Representative Role",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SECURITY TOOL APPROVER]",
+        "label": "Security Tool Approver",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SENSITIVE DATA TYPES]",
+        "label": "Sensitive Data Types",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SIEM / LOG PLATFORM]",
+        "label": "Siem / Log Platform",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SIEM / SOC SOLUTION]",
+        "label": "Siem / Soc Solution",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SLA PARTIES]",
+        "label": "Sla Parties",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SOURCE CODE REPOSITORY]",
+        "label": "Source Code Repository",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SSO / IDENTITY FEDERATION]",
+        "label": "Sso / Identity Federation",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[STEERING COMMITTEE]",
+        "label": "Steering Committee",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[STRATEGIC INTELLIGENCE COLLECTOR]",
+        "label": "Strategic Intelligence Collector",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[STRATEGIC INTELLIGENCE SOURCES]",
+        "label": "Strategic Intelligence Sources",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[SUPPLIER MANAGEMENT TEAM]",
+        "label": "Supplier Management Team",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[TACTICAL INTELLIGENCE COLLECTOR]",
+        "label": "Tactical Intelligence Collector",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[TACTICAL INTELLIGENCE SOURCES]",
+        "label": "Tactical Intelligence Sources",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[THREAT INTELLIGENCE OWNER]",
+        "label": "Threat Intelligence Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[THREAT REVIEW MEETING]",
+        "label": "Threat Review Meeting",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[UAT OWNER]",
+        "label": "Uat Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[VA DEPARTMENT]",
+        "label": "Va Department",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[VA FREQUENCY]",
+        "label": "Va Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[VA REPORT RECIPIENT]",
+        "label": "Va Report Recipient",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[VULNERABILITY MANAGEMENT OVERSIGHT TEAM]",
+        "label": "Vulnerability Management Oversight Team",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[WAF/WAAP SOLUTION]",
+        "label": "Waf/Waap Solution",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[WEB FILTERING METHOD]",
+        "label": "Web Filtering Method",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[WEB FILTERING OWNER]",
+        "label": "Web Filtering Owner",
+        "group": "Roles and operating controls",
+        "multiline": false
+      }
+    ]
+  },
+  "internal_audit_procedure": {
+    "file": "internal_audit_procedure.docx",
+    "label": "Internal Audit Procedure",
+    "tokens": [
+      {
+        "token": "[APPROVED BY]",
+        "label": "Approved By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED DATE]",
+        "label": "Approved Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[AUDIT FREQUENCY]",
+        "label": "Audit Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[AUDIT PLAN NOTICE PERIOD]",
+        "label": "Audit Plan Notice Period",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[AUDIT PROGRAMME OWNER]",
+        "label": "Audit Programme Owner",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[AUDIT RECORD RETENTION]",
+        "label": "Audit Record Retention",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[AUDIT REPORT TIMELINE]",
+        "label": "Audit Report Timeline",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[AUDIT WORKFLOW DIAGRAM]",
+        "label": "Audit Workflow Diagram",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION]",
+        "label": "Classification",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT CODE]",
+        "label": "Document Code",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[EFFECTIVE DATE]",
+        "label": "Effective Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[IN-SCOPE DEPARTMENTS]",
+        "label": "In-Scope Departments",
+        "group": "Organization and scope",
+        "multiline": true
+      },
+      {
+        "token": "[INTERNAL AUDITOR QUALIFICATION]",
+        "label": "Internal Auditor Qualification",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[LOGO]",
+        "label": "Logo",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[MANAGEMENT SYSTEM STANDARDS]",
+        "label": "Management System Standards",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[NEXT REVIEW DATE]",
+        "label": "Next Review Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[ORGANISATION NAME]",
+        "label": "Organisation Name",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED BY]",
+        "label": "Prepared By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED DATE]",
+        "label": "Prepared Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED BY]",
+        "label": "Reviewed By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED DATE]",
+        "label": "Reviewed Date",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[REVISION]",
+        "label": "Revision",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[SCHEDULE NOTICE PERIOD]",
+        "label": "Schedule Notice Period",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[SCHEDULED REVIEW FREQUENCY]",
+        "label": "Scheduled Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[STEERING COMMITTEE]",
+        "label": "Steering Committee",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[URGENT AUDIT NOTICE PERIOD]",
+        "label": "Urgent Audit Notice Period",
+        "group": "Audit and records",
+        "multiline": false
+      }
+    ]
+  },
+  "user_access_procedure": {
+    "file": "user_access_procedure.docx",
+    "label": "User Access Management Procedure",
+    "tokens": [
+      {
+        "token": "[ACCESS REVIEW FREQUENCY]",
+        "label": "Access Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[ACCOUNT REQUEST FORM]",
+        "label": "Account Request Form",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[ADMIN UNIT]",
+        "label": "Admin Unit",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED BY]",
+        "label": "Approved By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[APPROVED DATE]",
+        "label": "Approved Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[CLASSIFICATION]",
+        "label": "Classification",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[CORE SYSTEMS]",
+        "label": "Core Systems",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DESKTOP SUPPORT TEAM]",
+        "label": "Desktop Support Team",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[DOCUMENT CODE]",
+        "label": "Document Code",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[EFFECTIVE DATE]",
+        "label": "Effective Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[INFRASTRUCTURE TEAM]",
+        "label": "Infrastructure Team",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[INITIAL PASSWORD DELIVERY METHOD]",
+        "label": "Initial Password Delivery Method",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[LOGO]",
+        "label": "Logo",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[NEXT REVIEW DATE]",
+        "label": "Next Review Date",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[ORGANISATION NAME]",
+        "label": "Organisation Name",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[PERSONAL DATA SYSTEM REVOCATION TIMING]",
+        "label": "Personal Data System Revocation Timing",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED BY]",
+        "label": "Prepared By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[PREPARED DATE]",
+        "label": "Prepared Date",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REQUEST CHANNEL]",
+        "label": "Request Channel",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED BY]",
+        "label": "Reviewed By",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[REVIEWED DATE]",
+        "label": "Reviewed Date",
+        "group": "Audit and records",
+        "multiline": false
+      },
+      {
+        "token": "[REVISION]",
+        "label": "Revision",
+        "group": "Document control and approval",
+        "multiline": false
+      },
+      {
+        "token": "[SCHEDULED REVIEW FREQUENCY]",
+        "label": "Scheduled Review Frequency",
+        "group": "Audit and records",
+        "multiline": true
+      },
+      {
+        "token": "[SERVICE DESK TEAM]",
+        "label": "Service Desk Team",
+        "group": "Organization and scope",
+        "multiline": false
+      },
+      {
+        "token": "[STANDARD REVOCATION TIMING]",
+        "label": "Standard Revocation Timing",
+        "group": "Roles and operating controls",
+        "multiline": false
+      },
+      {
+        "token": "[USER ACCESS MATRIX NAMES]",
+        "label": "User Access Matrix Names",
+        "group": "Roles and operating controls",
+        "multiline": false
+      }
+    ]
+  }
+}

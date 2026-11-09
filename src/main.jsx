@@ -1,16 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import AuthGate from "./AuthGate.jsx";
+import AuditWorkspace from "./AuditWorkspace.jsx";
+import PlanningWorkspace from "./PlanningWorkspace.jsx";
+import ProjectDocumentsWorkspace from "./ProjectDocumentsWorkspace.jsx";
 import { createRoot } from "react-dom/client";
 import {
   Activity, ArrowUpRight, Bell, BookOpen, BriefcaseBusiness, CalendarDays, LogOut,
   Check, ChevronDown, ChevronRight, ClipboardCheck, Clock3, FileCheck2,
   FileText, FolderKanban, LayoutDashboard, LockKeyhole, Menu, MessageSquareText,
-  MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Sparkles, Trash2, Users, ImagePlus, X, Zap, Eye, EyeOff, Bot, Send
+  MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Sparkles, Trash2, Users, ImagePlus, X, Zap, Eye, EyeOff, Bot, Send, Sun, Moon
 } from "lucide-react";
 import "./styles.css";
+import "./theme.css";
 
 const workflow = [
-  { name: "Mainload", desc: "Project intake & scope", icon: FolderKanban, tone: "mint" },
+  { name: "Manload", desc: "Project intake & scope", icon: FolderKanban, tone: "mint" },
   { name: "Proposal", desc: "Proposal & quotation", icon: FileText, tone: "blue" },
   { name: "Kick-off", desc: "Project initiation", icon: CalendarDays, tone: "violet" },
   { name: "Interview Questions", desc: "Client interview preparation", icon: MessageSquareText, tone: "amber" },
@@ -38,7 +42,7 @@ function Sidebar({ active, navigate, mobileOpen, closeMobile, username, role, ro
   return <>
     {mobileOpen && <div className="mobile-scrim" onClick={closeMobile} />}
     <aside className={"sidebar " + (mobileOpen ? "sidebar-open" : "")}>
-      <div className="brand"><Logo/><div><strong>SC <span>CONTROL</span></strong><small>ECQ SECURITY CONSULTING</small></div><button className="close-menu icon-button" onClick={closeMobile}><X size={17}/></button></div>
+      <div className="brand"><Logo/><div><strong>SC <span>CONTROL</span></strong><small>ECQ SECURITY COMPLIANCE</small></div><button className="close-menu icon-button" onClick={closeMobile}><X size={17}/></button></div>
       <div className="workspace-switch"><div className="workspace-monogram">SC</div><div className="workspace-label"><b>SC Workspace</b><span>Internal environment</span></div><ChevronDown size={14}/></div>
       <div className="nav-caption">WORKSPACE</div>
       <nav>
@@ -65,16 +69,17 @@ function Sidebar({ active, navigate, mobileOpen, closeMobile, username, role, ro
   </>;
 }
 
-function Topbar({ title, subtitle, search, setSearch, onCreate, canCreate, onMobileMenu, onLogout, username, hasAvatar, avatarUpdatedAt, navigate }) {
+function Topbar({ title, subtitle, search, setSearch, onCreate, canCreate, onMobileMenu, onLogout, username, hasAvatar, avatarUpdatedAt, navigate, theme, onToggleTheme }) {
   return <header className="topbar">
     <button className="mobile-menu icon-button" onClick={onMobileMenu}><Menu size={20}/></button>
     <div className="page-title"><div className="breadcrumb">SC WORKSPACE <ChevronRight size={12}/> <span>{title.toUpperCase()}</span></div><h1>{title}</h1><p>{subtitle}</p></div>
     <div className="top-actions">
       <label className="global-search"><Search size={15}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects..."/><kbd>⌘ K</kbd></label>
       <button className="icon-button" aria-label="Notifications not configured" title="Notifications are not configured yet" disabled><Bell size={17}/></button>
+      <button className="theme-toggle icon-button" onClick={onToggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}><span className="theme-toggle-icon">{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>}</span><span className="theme-toggle-label">{theme === "dark" ? "Dark" : "Light"}</span></button>
       <div className="top-separator"/>
       <button className="icon-button" title="Sign out" aria-label="Sign out" onClick={onLogout}><LogOut size={16}/></button>
-      {canCreate && <button className="primary-button new-project" onClick={onCreate}><Plus size={16}/> New project</button>}
+      {canCreate && <button className="primary-button action-positive new-project" onClick={onCreate}><Plus size={16}/> New project</button>}
     </div>
   </header>;
 }
@@ -87,9 +92,9 @@ function Status({ value }) {
   return <span className={"status status-" + value.toLowerCase().replaceAll(" ", "-")}><i/>{value}</span>;
 }
 
-function ProjectTable({ projects, onOpen, loading = false }) {
+function ProjectTable({ projects, onOpen, onDelete, loading = false }) {
   return <div className="table-scroll"><table><thead><tr><th>PROJECT / CLIENT</th><th>WORKFLOW STAGE</th><th>PROGRESS</th><th>OWNER</th><th>DUE DATE</th><th>STATUS</th><th/></tr></thead>
-    <tbody>{projects.map(p => <tr key={p.id} onClick={() => onOpen(p)}><td><div className="project-name"><span className={"project-symbol " + p.tone}><ShieldCheck size={16}/></span><div><b>{p.name}</b><small>{p.id} <i>·</i> {p.client}</small></div></div></td><td className="stage-text">{p.stage}</td><td><div className="progress-cell"><span className="progress-track"><i style={{width: p.progress + "%"}}/></span><small>{p.progress}%</small></div></td><td><div className="owner"><span>{p.initials}</span>{p.owner}</div></td><td className="due-date">{p.due}</td><td><Status value={p.status}/></td><td><button className="row-more" onClick={e => {e.stopPropagation();onOpen(p);}}><MoreHorizontal size={17}/></button></td></tr>)}</tbody>
+    <tbody>{projects.map(p => <tr key={p.id} onClick={() => onOpen(p)}><td><div className="project-name"><span className={"project-symbol " + p.tone}><ShieldCheck size={16}/></span><div><b>{p.name}</b><small>{p.id} <i>·</i> {p.client}</small></div></div></td><td className="stage-text">{p.stage}</td><td><div className="progress-cell"><span className="progress-track"><i style={{width: p.progress + "%"}}/></span><small>{p.progress}%</small></div></td><td><div className="owner"><span>{p.initials}</span>{p.owner}</div></td><td className="due-date">{p.due}</td><td><Status value={p.status}/></td><td><div className="project-row-actions">{onDelete&&<button className="row-delete" title={`Delete ${p.name}`} aria-label={`Delete project ${p.name}`} onClick={e=>{e.stopPropagation();onDelete(p);}}><Trash2 size={15}/></button>}<button className="row-more" aria-label={`Open ${p.name}`} onClick={e => {e.stopPropagation();onOpen(p);}}><MoreHorizontal size={17}/></button></div></td></tr>)}</tbody>
   </table>{loading ? <div className="empty-state"><span className="loading-dot"/><b>Loading projects...</b></div> : projects.length === 0 && <div className="empty-state"><Search size={22}/><b>No projects yet</b><span>Create a project to begin populating this workspace.</span></div>}</div>;
 }
 
@@ -100,14 +105,14 @@ function WorkflowGrid({ navigate, allowedPages = [] }) {
 function ProjectModal({ onClose, onSave }) {
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
-  const [stage, setStage] = useState("Mainload");
+  const [stage, setStage] = useState("Manload");
   const [owner, setOwner] = useState("");
   const submit = e => { e.preventDefault(); if (name.trim() && client.trim()) { onSave({name: name.trim(), client: client.trim(), stage, owner}); onClose(); } };
   return <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><form className="modal" onSubmit={submit}><div className="modal-heading"><div><small>SC WORKSPACE</small><h2>Create new project</h2><p>Add a project to the SC workflow.</p></div><button className="icon-button" type="button" onClick={onClose}><X size={17}/></button></div>
     <label className="field">Project name<input required autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Enter project name"/></label>
     <label className="field">Client / organization<input required value={client} onChange={e => setClient(e.target.value)} placeholder="Enter client name"/></label>
     <div className="field-grid"><label className="field">Starting stage<select value={stage} onChange={e => setStage(e.target.value)}>{workflow.map(w => <option key={w.name}>{w.name}</option>)}</select></label><label className="field">Project owner (optional)<input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="Assign later"/></label></div>
-    <div className="modal-note"><LockKeyhole size={14}/> A new project starts at Mainload with no progress or due date until details are added.</div><div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button type="submit" className="primary-button"><Plus size={15}/> Create project</button></div>
+    <div className="modal-note"><LockKeyhole size={14}/> A new project starts at Manload with no progress or due date until details are added.</div><div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button type="submit" className="primary-button action-positive"><Plus size={15}/> Create project</button></div>
   </form></div>;
 }
 
@@ -329,7 +334,7 @@ function AdminAccessPage({ currentUserId, role }) {
             {[...new Set(permissionCatalog.map(p=>p.category))].map(category=>{const items=permissionCatalog.filter(p=>p.category===category&&((p.label+" "+p.permission_key).toLowerCase().includes(rolePermissionSearch.trim().toLowerCase())));if(!items.length)return null;const allSelected=items.every(p=>rolePermissions.includes(p.permission_key));return <div key={category} className="role-permission-group"><div className="role-permission-group-heading"><small>{category}</small><button type="button" className="text-button" onClick={()=>setRolePermissions(old=>{const next=allSelected?old.filter(k=>!items.some(p=>p.permission_key===k)):[...new Set([...old,...items.map(p=>p.permission_key)])];if(next.includes("projects:create")&&!next.includes("page:Projects"))next.push("page:Projects");return next})}>{allSelected?"Clear shown":"Select shown"}</button></div>{items.map(p=><label key={p.permission_key} className="permission-row"><input type="checkbox" checked={rolePermissions.includes(p.permission_key)} onChange={()=>setRolePermissions(old=>{const has=old.includes(p.permission_key);if(p.permission_key==="projects:create"&&!has)return [...new Set([...old,p.permission_key,"page:Projects"])];if(p.permission_key==="page:Projects"&&has)return old.filter(k=>k!=="page:Projects"&&k!=="projects:create");return has?old.filter(k=>k!==p.permission_key):[...old,p.permission_key]})}/><span><b>{p.label}</b><small>{p.permission_key}{p.permission_key==="projects:create"?" · Also grants Projects page access":""}</small></span></label>)}</div>})}
             {permissionCatalog.filter(p=>(p.label+" "+p.permission_key).toLowerCase().includes(rolePermissionSearch.trim().toLowerCase())).length===0&&<p className="role-permission-empty">No permissions match your search.</p>}
           </div>
-          <div className="role-form-actions"><button className="primary-button" type="submit" disabled={roleSaving}>{roleSaving?(editingRoleId?"Saving changes...":"Creating role..."):<><Plus size={15}/> {editingRoleId?"Save changes":"Create role"}</>}</button>{editingRoleId && <button className="secondary-button" type="button" onClick={()=>{setEditingRoleId(null);setRoleName("");setRoleDescription("");setRolePermissions([])}}>Cancel</button>}</div>
+          <div className="role-form-actions"><button className="primary-button action-positive" type="submit" disabled={roleSaving}>{roleSaving?(editingRoleId?"Saving changes...":"Creating role..."):<><Plus size={15}/> {editingRoleId?"Save changes":"Create role"}</>}</button>{editingRoleId && <button className="secondary-button" type="button" onClick={()=>{setEditingRoleId(null);setRoleName("");setRoleDescription("");setRolePermissions([])}}>Cancel</button>}</div>
         </form>
         <div className="role-catalog-list"><h3>Available roles</h3>{roleCatalog.map(r=><div className="role-catalog-row" key={r.id}><div className="role-catalog-info"><b>{r.name}{r.is_system ? <span className="role-system-label">SYSTEM</span>:null}</b><small>{r.description || "No description"} · {r.permissions?.length ?? 0} permissions</small></div>{!r.is_system && <div className="role-row-actions"><button type="button" className="secondary-button" onClick={()=>{setShowRoleManager(true);setEditingRoleId(r.id);setRoleName(r.name);setRoleDescription(r.description||"");setRolePermissions(r.permissions||[]);setRolePermissionSearch("")}}>Edit</button><button type="button" className="delete-user-button" onClick={()=>deleteRole(r)}><Trash2 size={13}/> Delete</button></div>}</div>)}</div>
       </div>}
@@ -367,7 +372,7 @@ function AdminAccessPage({ currentUserId, role }) {
           <div className="permission-list">{data.pages.map(p=><label key={p} className="permission-row"><input type="checkbox" checked={pages.includes(p)} onChange={()=>toggle(pages,setPages,p)}/><span><b>{p}</b></span></label>)}</div>
           <h3 className="permission-section-title">Projects</h3>
           <div className="permission-list">{data.projects.map(p=><label key={p.id} className="permission-row"><input type="checkbox" checked={projectIds.includes(p.id)} onChange={()=>toggle(projectIds,setProjectIds,p.id)}/><span><b>{p.name}</b><small>{p.id} · {p.client}</small></span></label>)}</div>
-          <button type="button" className="primary-button access-save" onClick={saveAccess} disabled={saving}>{saving ? <><span className="loading-dot"/> Saving permissions...</> : <><ShieldCheck size={15}/> Save access permissions</>}</button>
+          <button type="button" className="primary-button action-positive access-save" onClick={saveAccess} disabled={saving}>{saving ? <><span className="loading-dot"/> Saving permissions...</> : <><ShieldCheck size={15}/> Save access permissions</>}</button>
         </>}
       </section>
     </div>
@@ -482,7 +487,7 @@ function MyProfilePage({ user, onUpdated }) {
           <label className="field">Confirm new password<input type="password" minLength={12} maxLength={128} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password" placeholder="Re-enter new password"/></label>
           <label className="field current-password-field">Current password <span className="required-mark">Required</span><input type="password" required value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} autoComplete="current-password" placeholder="Verify it is you"/></label>
           <div className="modal-note"><LockKeyhole size={14}/> Passwords are never displayed or written to audit logs. Changing your password will sign out other active sessions.</div>
-          <div className="profile-actions"><button className="primary-button" type="submit" disabled={saving}>{saving ? <><span className="loading-dot"/> Saving changes...</> : <><ShieldCheck size={15}/> Save changes</>}</button></div>
+          <div className="profile-actions"><button className="primary-button action-positive" type="submit" disabled={saving}>{saving ? <><span className="loading-dot"/> Saving changes...</> : <><ShieldCheck size={15}/> Save changes</>}</button></div>
         </form>
       </section>
     </div>
@@ -512,7 +517,7 @@ function AuditLogPage() {
   </section>;
 }
 
-function App({ user, onLogout, onUserUpdated }) {
+function App({ user, onLogout, onUserUpdated, theme, onToggleTheme }) {
   const allowedPages = user?.access?.pages || [];
   const currentDate = new Date();
   const greeting = currentDate.getHours() < 12 ? "Good morning" : currentDate.getHours() < 18 ? "Good afternoon" : "Good evening";
@@ -522,6 +527,9 @@ function App({ user, onLogout, onUserUpdated }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [dbError, setDbError] = useState("");
@@ -529,10 +537,25 @@ function App({ user, onLogout, onUserUpdated }) {
   const visibleProjects = useMemo(() => projects.filter(p => [p.name,p.client,p.id,p.stage,p.owner].join(" ").toLowerCase().includes(search.toLowerCase())), [projects, search]);
   const navigate = name => { if (allowedPages.includes(name)) setActive(name); setMobileOpen(false); };
   const saveProject = async data => { try { const response = await fetch("/api/projects", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)}); const result = await response.json(); if (!response.ok) throw new Error(result.error || "Failed to save project."); setProjects(prev => [result.project, ...prev]); setActive("Projects"); setSearch(""); setDbError(""); } catch (err) { alert(err.message || "Unable to save data."); } };
+  const requestDeleteProject = project => {if(user?.role!=="admin")return;setDeleteError("");setProjectToDelete(project);};
+  const confirmDeleteProject = async () => {
+    const project=projectToDelete;
+    if(user?.role!=="admin"||!project||deletingProject)return;
+    setDeletingProject(true);setDeleteError("");
+    try{
+      const response=await fetch(`/api/projects/${encodeURIComponent(project.id)}`,{method:"DELETE"});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||"Could not delete this project.");
+      setProjects(previous=>previous.filter(item=>item.id!==project.id));
+      setSelectedProject(current=>current?.id===project.id?null:current);
+      setDbError("");
+      setProjectToDelete(null);
+    }catch(error){setDeleteError(error.message||"Could not delete this project.");}finally{setDeletingProject(false);}
+  };
   const subtitle = active === "Dashboard" ? "Your team's security engagements, at a glance." : active === "Projects" ? "Track every client engagement from intake to close-out." : active === "My Profile" ? "Manage your sign-in details and account security." : active === "Audit Logs" ? "Review account activity and important security events." : active === "AI Assistant" ? "Security guidance for authorized assessment work." : (workflow.find(w => w.name === active)?.desc || "Workspace preferences and access configuration.");
   useEffect(() => { if (!allowedPages.includes(active)) setActive(allowedPages[0] || "Dashboard"); }, [active, user?.id]);
   return <div className="app-shell"><Sidebar active={active} navigate={navigate} mobileOpen={mobileOpen} closeMobile={() => setMobileOpen(false)} username={user?.username} role={user?.role} roleName={user?.role_name} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at} allowedPages={allowedPages}/><main className="main-area">
-    <Topbar title={active} subtitle={subtitle} search={search} setSearch={setSearch} navigate={navigate} onCreate={() => setShowModal(true)} canCreate={active === "Projects" && allowedPages.includes("Projects") && !!user?.access?.canCreateProjects} onMobileMenu={() => setMobileOpen(true)} onLogout={onLogout} username={user?.username} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at}/>
+    <Topbar title={active} subtitle={subtitle} search={search} setSearch={setSearch} navigate={navigate} onCreate={() => setShowModal(true)} canCreate={active === "Projects" && allowedPages.includes("Projects") && !!user?.access?.canCreateProjects} onMobileMenu={() => setMobileOpen(true)} onLogout={onLogout} username={user?.username} hasAvatar={user?.has_avatar} avatarUpdatedAt={user?.avatar_updated_at} theme={theme} onToggleTheme={onToggleTheme}/>
     {dbError && <div className="db-warning"><LockKeyhole size={14}/>{dbError}</div>}
     <div className="content">
       {active === "My Profile" ? <MyProfilePage user={user} onUpdated={onUserUpdated}/> : active === "Settings" && (allowedPages.includes("Settings")) ? <AdminAccessPage currentUserId={user?.id} role={user?.role}/> : active === "Audit Logs" && user?.access?.pages?.includes("Audit Logs") ? <AuditLogPage /> : active === "AI Assistant" && allowedPages.includes("AI Assistant") ? <AIAssistantPage /> : active === "Dashboard" ? <>
@@ -548,21 +571,32 @@ function App({ user, onLogout, onUserUpdated }) {
       </> : active === "Projects" ? <>
         <div className="welcome-row projects-welcome"><div><div className="eyebrow-line"><i/> ENGAGEMENT TRACKER</div><h2>Projects</h2><p>Manage engagements across all eight SC workflow stages.</p></div>{allowedPages.includes("Projects") && user?.access?.canCreateProjects && <button className="primary-button" onClick={() => setShowModal(true)}><Plus size={15}/> New project</button>}</div>
         <div className="stats-grid compact-stats"><StatCard label="Total projects" value={String(projects.length).padStart(2,"0")} change="All stages" note="in this workspace" icon={BriefcaseBusiness} tone="mint"/><StatCard label="In progress" value={String(projects.filter(p => p.status === "In progress").length).padStart(2,"0")} change="Active" note="currently underway" icon={Activity} tone="blue"/><StatCard label="In review" value={String(projects.filter(p => p.status === "Review").length).padStart(2,"0")} change="Attention" note="awaiting review" icon={Clock3} tone="amber" caution/><StatCard label="Planning" value={String(projects.filter(p => p.status === "Planning").length).padStart(2,"0")} change="Upcoming" note="not yet underway" icon={CalendarDays} tone="violet"/></div>
-        <section className="panel all-projects"><div className="panel-heading"><div><h3>All engagements</h3><p>Search project name, client, ID or workflow stage.</p></div><label className="table-search"><Search size={14}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter projects"/></label></div><ProjectTable projects={visibleProjects} onOpen={setSelectedProject} loading={projectsLoading}/></section>
-      </> : <ModulePage name={active} />}
+        <section className="panel all-projects"><div className="panel-heading"><div><h3>All engagements</h3><p>Search project name, client, ID or workflow stage.</p></div><label className="table-search"><Search size={14}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter projects"/></label></div><ProjectTable projects={visibleProjects} onOpen={setSelectedProject} onDelete={user?.role==="admin"?requestDeleteProject:undefined} loading={projectsLoading}/></section>
+      </> : active === "Manload" ? <PlanningWorkspace mode="setup" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Proposal" ? <PlanningWorkspace mode="proposal" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Kick-off" ? <PlanningWorkspace mode="kickoff" userId={user?.id} userRole={user?.role} allowedPages={allowedPages} navigate={navigate}/> : active === "Audit Report" && allowedPages.includes("Audit Report") ? <><AuditWorkspace userId={user?.id} userRole={user?.role} /><ProjectDocumentsWorkspace mode="report" userId={user?.id} userRole={user?.role}/></> : active === "Audit Checklist" ? <ProjectDocumentsWorkspace mode="audit" userId={user?.id} userRole={user?.role}/> : active === "Close Meeting" ? <ProjectDocumentsWorkspace mode="close" userId={user?.id} userRole={user?.role}/> : active === "Policy" ? <ProjectDocumentsWorkspace mode="policy" userId={user?.id} userRole={user?.role}/> : <ModulePage name={active} />}
     </div>
     <footer className="app-footer"><span>SC CONTROL CENTER <b>·</b> UI PROTOTYPE 0.1.0</span><span><i/> Development environment <b>|</b> Built for internal use</span></footer>
   </main>
   {showModal && <ProjectModal onClose={() => setShowModal(false)} onSave={saveProject}/>}
   {selectedProject && <ProjectDetail project={selectedProject} onClose={() => setSelectedProject(null)}/>}
+  {projectToDelete&&<div className="modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!deletingProject){setProjectToDelete(null);setDeleteError("");}}}><section className="modal project-delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-project-title"><div className="modal-heading"><div><small>PROJECT ADMINISTRATION</small><h2 id="delete-project-title">Delete project?</h2><p>Project “{projectToDelete.name}” ({projectToDelete.id}) will be deleted.</p></div><button className="icon-button" type="button" aria-label="Close delete confirmation" disabled={deletingProject} onClick={()=>{setProjectToDelete(null);setDeleteError("");}}><X size={17}/></button></div><div className="modal-note"><LockKeyhole size={14}/>This permanently deletes its Manload, audit, document, team, and project records.</div>{deleteError&&<div className="db-warning project-delete-error"><LockKeyhole size={14}/>{deleteError}</div>}<div className="modal-actions"><button type="button" className="secondary-button" disabled={deletingProject} onClick={()=>{setProjectToDelete(null);setDeleteError("");}}>Cancel</button><button type="button" className="primary-button project-delete-confirm" disabled={deletingProject} onClick={confirmDeleteProject}><Trash2 size={15}/>{deletingProject?"Deleting…":"Delete project"}</button></div></section></div>}
   </div>;
 }
 
 function Root() {
+  const [theme, setTheme] = useState(() => {
+    try { return window.localStorage.getItem("sc-control-theme") === "light" ? "light" : "dark"; }
+    catch { return "dark"; }
+  });
   const [session, setSession] = useState(null);
   const [authKey, setAuthKey] = useState(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    try { window.localStorage.setItem("sc-control-theme", theme); } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme(current => current === "dark" ? "light" : "dark");
   const logout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -580,7 +614,7 @@ function Root() {
     }
   };
   return <>
-    <AuthGate key={authKey} onAuthenticated={setSession}>{session ? <App user={{...session.user,access:session.access}} onLogout={() => setShowLogoutConfirm(true)} onUserUpdated={setSession}/> : <SessionApp onSession={setSession}/>}</AuthGate>
+    <AuthGate key={authKey} onAuthenticated={setSession} theme={theme} onToggleTheme={toggleTheme}>{session ? <App user={{...session.user,access:session.access}} onLogout={() => setShowLogoutConfirm(true)} onUserUpdated={setSession} theme={theme} onToggleTheme={toggleTheme}/> : <SessionApp onSession={setSession}/>}</AuthGate>
     {showLogoutConfirm && session && <div className="modal-backdrop logout-confirm-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!loggingOut)setShowLogoutConfirm(false)}}><section className="modal logout-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="logout-confirm-title"><div className="logout-confirm-icon"><LogOut size={22}/></div><div className="modal-heading logout-confirm-heading"><div><small>SC CONTROL CENTER</small><h2 id="logout-confirm-title">Sign out</h2><p>Are you sure you want to sign out?</p></div><button type="button" className="icon-button" aria-label="Cancel sign out" disabled={loggingOut} onClick={()=>setShowLogoutConfirm(false)}><X size={17}/></button></div><div className="modal-actions"><button type="button" className="secondary-button" disabled={loggingOut} onClick={()=>setShowLogoutConfirm(false)}>Cancel</button><button type="button" className="primary-button logout-confirm-button" disabled={loggingOut} onClick={logout}><LogOut size={15}/>{loggingOut?"Signing out…":"Sign out"}</button></div></section></div>}
   </>;
 }
